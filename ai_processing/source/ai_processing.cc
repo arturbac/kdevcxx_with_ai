@@ -10,6 +10,7 @@
 #include <glaze/json/read.hpp>
 #include <stralgo/strconv_numeric.h>
 #include <temp_auth_data.h>
+#include <aiprocess/trim_white_space.h>
 
 // 1. Text Completion (/v1/completions)
 //
@@ -110,15 +111,17 @@ try
 
   // prepare json
   ai_command_json command{.prompt = fmt::format("[{},{}] {}", ai_rules, command_text, code_text)};
-  size_t const aprox_tokens { code_text.size()/2 + command_text.size()};
-  if(command.max_tokens< aprox_tokens )
+  size_t const aprox_tokens{code_text.size() / 2 + command_text.size()};
+  if(command.max_tokens < aprox_tokens)
     command.max_tokens = uint16_t(aprox_tokens);
   // Serialize the object to a JSON string
   std::string serialized = glz::write_json(command);
   // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
 
   /// v1/edits
-  auto res{send_text_to_gpt("api.openai.com", "443", "/v1/completions", api_key, serialized, 11)};
+  auto res{
+    send_text_to_gpt("api.openai.com", "443", "/v1/completions", api_key, aiprocess::trim_white_space(serialized), 11)
+  };
 
   // auto res{send_text_to_gpt("api.openai.com", "443", "/v1/engines/gpt-3.5-turbo/completions", api_key, serialized,
   // 11)};
