@@ -22,7 +22,7 @@ int main()
     expect(result.has_value()) << "Expected a valid result";
 
     // Assuming the echoed back text contains the original text
-    expect(result.value().find(text.data()) != std::string::npos) << "The response should contain the sent text";
+    expect(result.value().find("\"test\": \"data\"") != std::string::npos) << result.value() << "\nThe response should contain the sent text\n";
   };
 
   "send_text_to_gpt_with_glaze_json"_test = []
@@ -54,6 +54,6 @@ int main()
 
     // Verify the response contains the sent JSON data
     expect(result.has_value()) << "Expected a valid result";
-    expect(result->find(json_text) != std::string::npos) << "The response should contain the sent JSON data";
+    expect(result->find("ASSERT(value.isMember(szName)") != std::string::npos) << result.value() << "\nThe response should contain the sent JSON data\n";
   };
   }

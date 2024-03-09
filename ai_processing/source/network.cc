@@ -49,34 +49,35 @@ static auto to_string(http::response<http::dynamic_body> const & response) -> st
   return result;
   }
 
-static auto to_string(http::request<http::string_body> const& req) -> std::string
-{
-    std::string request_text;
+static auto to_string(http::request<http::string_body> const & req) -> std::string
+  {
+  std::string request_text;
 
-    // Add the request line
-    request_text += req.method_string();
-    request_text += " ";
-    request_text += req.target();
-    request_text += " ";
-    request_text += req.version() == 11 ? "HTTP/1.1" : "HTTP/1.0";
+  // Add the request line
+  request_text += req.method_string();
+  request_text += " ";
+  request_text += req.target();
+  request_text += " ";
+  request_text += req.version() == 11 ? "HTTP/1.1" : "HTTP/1.0";
+  request_text += "\r\n";
+
+  // Add the headers
+  for(auto const & field: req.base())
+    {
+    request_text += field.name_string();
+    request_text += ": ";
+    request_text += field.value();
     request_text += "\r\n";
-
-    // Add the headers
-    for (const auto& field : req.base()) {
-        request_text += field.name_string();
-        request_text += ": ";
-        request_text += field.value();
-        request_text += "\r\n";
     }
 
-    // End of headers
-    request_text += "\r\n";
+  // End of headers
+  request_text += "\r\n";
 
-    // Add the body
-    request_text += req.body();
+  // Add the body
+  request_text += req.body();
 
-    return request_text;
-}
+  return request_text;
+  }
 
 auto send_text_to_gpt(
   std::string_view host,
@@ -116,7 +117,6 @@ auto send_text_to_gpt(
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
 
-
     // Set up the request. We use a string for the body.
     http::request<http::string_body> req{http::verb::post, target, version};
     req.set(http::field::host, host);
@@ -125,7 +125,7 @@ auto send_text_to_gpt(
     req.set(http::field::authorization, std::string("Bearer ").append(api_key));
     req.body() = text;
     req.prepare_payload();
-    
+
     fmt::print("{}Send:\n{}\n{}", text_bar, to_string(req), text_bar);
 
     // Send the HTTP request to the remote host
@@ -149,6 +149,27 @@ auto send_text_to_gpt(
       {
       // Rationale:
       // http://stackoverflow.com/questions/25587403/boost-asio-ssl-socket-shutdown
+      ec = {};
+      }
+    else if(ec == ssl::error::stream_truncated)
+      {
+      // ssl::error::stream_truncated, also known as an SSL "short read",
+      // indicates the peer closed the connection without performing the
+      // required closing handshake (for example, Google does this to
+      // improve performance). Generally this can be a security issue,
+      // but if your communication protocol is self-terminated (as
+      // it is with both HTTP and WebSocket) then you may simply
+      // ignore the lack of close_notify.
+      //
+      // https://github.com/boostorg/beast/issues/38
+      //
+      // https://security.stackexchange.com/questions/91435/how-to-handle-a-malicious-ssl-tls-shutdown
+      //
+      // When a short read would cut off the end of an HTTP message,
+      // Beast returns the error beast::http::error::partial_message.
+      // Therefore, if we see a short read here, it has occurred
+      // after the message has been completed, so it is safe to ignore it.
+      fmt::print("{}Network Warn:\n{}\n{}", text_bar, ec.what(), text_bar);
       ec = {};
       }
     if(ec)
