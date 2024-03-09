@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <fmt/core.h>
+
 //
 // https://api.openai.com/v1/engines/gpt-3.5-turbo/completions
 // curl -X POST
@@ -18,12 +19,64 @@
 //      -d '{"prompt": "Hello, world!", "max_tokens": 5}'
 //      https://api.openai.com/v1/engines/gpt-3.5-turbo/completions
 //
+static constexpr std::string_view text_bar{
+  "----------------------------------------------------------------------------------------\n"
+};
 
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace http = beast::http;    // from <boost/beast/http.hpp>
 namespace net = boost::asio;     // from <boost/asio.hpp>
 using tcp = net::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 namespace ssl = net::ssl;        // from <boost/asio/ssl.hpp>
+
+static auto to_string(http::response<http::dynamic_body> const & response) -> std::string
+  {
+  // serialize the header part of the response
+  std::string result;
+  result.reserve(512);
+  for(auto const & field: response.base())
+    {
+    result.append(field.name_string());
+    result.append(": ");
+    result.append(field.value());
+    result.append("\r\n");
+    }
+  result.append("\r\n");
+
+  // Append the body content
+  result.append(beast::buffers_to_string(response.body().data()));
+
+  return result;
+  }
+
+static auto to_string(http::request<http::string_body> const& req) -> std::string
+{
+    std::string request_text;
+
+    // Add the request line
+    request_text += req.method_string();
+    request_text += " ";
+    request_text += req.target();
+    request_text += " ";
+    request_text += req.version() == 11 ? "HTTP/1.1" : "HTTP/1.0";
+    request_text += "\r\n";
+
+    // Add the headers
+    for (const auto& field : req.base()) {
+        request_text += field.name_string();
+        request_text += ": ";
+        request_text += field.value();
+        request_text += "\r\n";
+    }
+
+    // End of headers
+    request_text += "\r\n";
+
+    // Add the body
+    request_text += req.body();
+
+    return request_text;
+}
 
 auto send_text_to_gpt(
   std::string_view host,
@@ -63,13 +116,6 @@ auto send_text_to_gpt(
     // Perform the SSL handshake
     stream.handshake(ssl::stream_base::client);
 
-    fmt::print(
-      "----------------------------------------------------------------------------------------\n"
-      "Send:\n{}\n",
-      text,
-      "----------------------------------------------------------------------------------------\n"
-
-    );
 
     // Set up the request. We use a string for the body.
     http::request<http::string_body> req{http::verb::post, target, version};
@@ -79,6 +125,8 @@ auto send_text_to_gpt(
     req.set(http::field::authorization, std::string("Bearer ").append(api_key));
     req.body() = text;
     req.prepare_payload();
+    
+    fmt::print("{}Send:\n{}\n{}", text_bar, to_string(req), text_bar);
 
     // Send the HTTP request to the remote host
     http::write(stream, req);
@@ -92,8 +140,7 @@ auto send_text_to_gpt(
     // Receive the HTTP response
     http::read(stream, buffer, res);
 
-    // Write the message to standard out
-    std::cout << res << std::endl;
+    fmt::print("{}Received:\n{}\n{}", text_bar, to_string(res), text_bar);
 
     // Gracefully close the stream
     beast::error_code ec;
@@ -106,7 +153,7 @@ auto send_text_to_gpt(
       }
     if(ec)
       {
-      fmt::print("Error: {}\n", ec.what());
+      fmt::print("{}Network Error:\n{}\n{}", text_bar, ec.what(), text_bar);
       // return unexpected{send_text_to_gpt_error::network_error};
       }
 

@@ -7,6 +7,12 @@ function(add_ut_test_target source_file_name)
                           Boost::ut
                          )
     target_compile_options(${test_executable_name} PUBLIC -Wno-global-constructors )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+    target_compile_options( ${test_executable_name} PRIVATE 
+      "-Wno-undefined-func-template"
+      "-Wno-exit-time-destructors" 
+      )
+    endif()
 endfunction()
 
 function(add_engine_ut source_file_name)

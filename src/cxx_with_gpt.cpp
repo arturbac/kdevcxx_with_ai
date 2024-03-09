@@ -21,9 +21,32 @@
 #include <string>
 #endif
 
+enum class get_view_file_path_error
+  {
+  no_document,
+  unhandled_exception
+  };
+
+[[nodiscard]]
+static auto get_view_file_path(KTextEditor::View const & view
+) noexcept -> expected<std::string, get_view_file_path_error>
+try
+  {
+  if(!view.document()) [[unlikely]]
+    return unexpected(get_view_file_path_error::no_document);
+
+  auto document = view.document();
+  std::string filePath = document->url().toLocalFile().toStdString();
+
+  return filePath;
+  }
+catch(...)
+  {
+  return unexpected{get_view_file_path_error::unhandled_exception};
+  }
 K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "cxx_with_gpt.json", registerPlugin<cxx_with_gpt>();)
 
-cxx_with_gpt::cxx_with_gpt(QObject * parent, QVariantList const & args) : KDevelop::IPlugin("cxx_with_gpt", parent)
+cxx_with_gpt::cxx_with_gpt(QObject * parent, QVariantList const &) : KDevelop::IPlugin("cxx_with_gpt", parent)
   {
   qDebug() << "cxx_with_gpt::cxx_with_gpt\n";
   //   setupConfigurationInterface();
@@ -38,9 +61,7 @@ cxx_with_gpt::cxx_with_gpt(QObject * parent, QVariantList const & args) : KDevel
   //   connect(myAction, &QAction::triggered, this, &cxx_with_gpt::onMyActionTriggered);
   }
 
-void cxx_with_gpt::createActionsForMainWindow(
-  Sublime::MainWindow *, QString & xmlFile, KActionCollection & actions
-)
+void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & xmlFile, KActionCollection & actions)
   {
   QAction * myAction = new QAction(QIcon(":/icons/my_icon.png"), tr("&Process with AI"), this);
   myAction->setToolTip(tr("Do something interesting with AI"));
@@ -55,19 +76,22 @@ void cxx_with_gpt::createActionsForMainWindow(
 void cxx_with_gpt::on_process_with_ai()
   {
   // qDebug() << "\nMy action was triggered!\n";
-  auto * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
-  if(view && view->selection())
+  KTextEditor::View * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
+  if(nullptr != view && view->selection())
     {
     // Read the current selected text
     QString selected_text = view->selectionText();
     qDebug() << "\ncxx_with_gpt: selecetd [" << selected_text << "]\n";
+    std::string clang_format_working_directory{};
+    if(auto path{get_view_file_path(*view)}; path.has_value())
+      clang_format_working_directory = std::move(path.value());
 
     auto result = process_with_ai(selected_text.toStdString());
 
     if(result)
       {
       auto const & response{*result};
-      auto new_text = navive_response_format(response);
+      auto new_text = process_ai_response(response, std::move(clang_format_working_directory));
       fmt::print("cxx_with_gpt: Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
       if(!new_text.empty())
         view->document()->replaceText(view->selectionRange(), QString::fromStdString(new_text));

@@ -1,6 +1,9 @@
 #ifndef Q_MOC_RUN
 #include "ai_processing.h"
 #include "network.h"
+#include <aiprocess/change_current_dir.h>
+#include <aiprocess/clang_format.h>
+
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
 #include <glaze/json/write.hpp>
@@ -75,13 +78,11 @@ struct ai_command_json
   std::string model{"gpt-3.5-turbo-instruct"};
   std::string prompt;
   double temperature{0.5};
-  int max_tokens = 500;
+  uint16_t max_tokens = 500;
   double top_p{1.0};
   double frequency_penalty{0.0};
   double presence_penalty{0.0};
   };
-
-
 
 // static std::string_view api_url{"https://api.openai.com/v1/engines/code-davinci-002/completions"};
 // https://platform.openai.com/docs/deprecations
@@ -109,7 +110,9 @@ try
 
   // prepare json
   ai_command_json command{.prompt = fmt::format("[{},{}] {}", ai_rules, command_text, code_text)};
-
+  size_t const aprox_tokens { code_text.size()/2 + command_text.size()};
+  if(command.max_tokens< aprox_tokens )
+    command.max_tokens = uint16_t(aprox_tokens);
   // Serialize the object to a JSON string
   std::string serialized = glz::write_json(command);
   // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
@@ -139,7 +142,8 @@ catch(...)
 using namespace std::string_view_literals;
 static constexpr glz::opts default_json_parse_opts{.error_on_unknown_keys = false, .skip_null_members = true};
 
-auto parse_json_response(std::string_view response_json_data) -> std::string
+auto parse_json_response(std::string_view response_json_data, std::string && clang_format_working_directory)
+  -> std::string
   {
   model_response_t mr;
   glz::context ctx{};
@@ -149,13 +153,18 @@ auto parse_json_response(std::string_view response_json_data) -> std::string
     std::size_t choice_nr{};
     auto fn_format_choice = [&](std::string && str, model_choice_data_t const & mcd) -> std::string
     {
-      str.append(stralgo::stl::compose(
+      auto unformatted{stralgo::stl::compose(
         // clang-format off
-        "#elif 0 \n"sv,
-        "// ["sv, choice_nr, "]\n"sv,
+        "\t // ["sv, choice_nr, "]\n"sv,
         "\t"sv, mcd.text, '\n'
-        ));
-      // clang-format on
+        // clang-format on
+      )};
+      auto formatted{aiprocess::clang_format(unformatted, clang_format_working_directory)};
+      // TODO use the path of current file name
+      if(formatted.has_value())
+        str.append(formatted.value());
+      else
+        str.append(unformatted);
       return str;
     };
     return stralgo::stl::compose(
@@ -167,9 +176,9 @@ auto parse_json_response(std::string_view response_json_data) -> std::string
       " model : "sv, mr.model, '\n',
       " choices :\n"sv,
       "*/"sv,
-      "#if 1\n"sv,
+      "// AI CODE BLOCK BEGIN\n"sv,
         small_vectors::ranges::accumulate( mr.choices, std::string{}, fn_format_choice ),
-      "#endif\n"sv
+      "// AI CODE BLOCK END\n"sv
       // clang-format on
     );
     }
@@ -185,7 +194,8 @@ auto parse_json_response(std::string_view response_json_data) -> std::string
     }
   }
 
-auto navive_response_format(model_response_text_t const & data) -> std::string
+auto process_ai_response(model_response_text_t const & data, std::string && clang_format_working_directory)
+  -> std::string
   {
   if(data.send_text.empty())
     return fmt::format(
@@ -196,7 +206,7 @@ auto navive_response_format(model_response_text_t const & data) -> std::string
 #endif
 )",
       data.command,
-      parse_json_response(data.recived_text)
+      parse_json_response(data.recived_text, std::move(clang_format_working_directory))
     );
   else
     return fmt::format(
@@ -210,53 +220,9 @@ auto navive_response_format(model_response_text_t const & data) -> std::string
 )",
       data.command,
       data.send_text,
-      parse_json_response(data.recived_text)
+      parse_json_response(data.recived_text, std::move(clang_format_working_directory))
     );
   }
 
-auto clang_format(std::string const & code, std::string const & working_directory) noexcept -> clang_format_result
-try
-  {
-    {
-    using enum clang_format_error;
-    // Temporary file names
-    auto const input_filename = std::filesystem::temp_directory_path() / "temp_code_input.cpp";
-    auto const output_filename = std::filesystem::temp_directory_path() / "temp_code_output.cpp";
-
-      // Write code to a temporary file
-      {
-      std::ofstream input_file(input_filename);
-      if(!input_file)
-        return unexpected(input_file_creation_failed);
-      input_file << code;
-      }
-
-    // Construct the clang-format command
-    std::ostringstream command;
-    command << "clang-format";
-    if(!working_directory.empty())
-      command << " --assume-filename=" << input_filename.string();
-    command << " < " << input_filename.string();
-    command << " > " << output_filename.string();
-
-    // Execute clang-format
-    if(std::system(command.str().c_str()) != 0)
-      return unexpected(command_execution_failed);
-
-    std::ifstream output_file(output_filename);
-    if(!output_file)
-      return unexpected(output_file_read_failed);
-    std::string formatted_code((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-
-    std::filesystem::remove(input_filename);
-    std::filesystem::remove(output_filename);
-
-    return formatted_code;
-    }
-  }
-catch(...)
-  {
-  return unexpected(clang_format_error::unhandled_exception);
-  }
 #endif
 

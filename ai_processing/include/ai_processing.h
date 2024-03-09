@@ -37,8 +37,11 @@ struct model_response_text_t
 
 expected<model_response_text_t, process_with_ai_error> process_with_ai(std::string && user_data);
 
-auto parse_json_response(std::string_view response_json_data) -> std::string;
-auto navive_response_format(model_response_text_t const & data) -> std::string;
+auto parse_json_response(
+  std::string_view response_json_data, std::string && clang_format_working_directory = std::string{}
+) -> std::string;
+auto process_ai_response(model_response_text_t const & data, std::string && clang_format_working_directory)
+  -> std::string;
 
 struct model_choice_data_t
   {
@@ -116,19 +119,6 @@ struct model_response_t
 //     prompt_tokens: The number of tokens in the prompt.
 //     completion_tokens: The number of tokens in the generated completion.
 //     total_tokens: The sum of prompt_tokens and completion_tokens, indicating the total number of tokens processed.
-
-enum struct clang_format_error
-  {
-  success,
-  input_file_creation_failed,
-  command_execution_failed,
-  output_file_read_failed,
-  unhandled_exception
-  };
-  
-using clang_format_result = expected<std::string, clang_format_error>;
-
-auto clang_format(std::string const & code, std::string const & working_directory) noexcept -> clang_format_result;
 
 /*
 #include <glaze/json/read.hpp>
