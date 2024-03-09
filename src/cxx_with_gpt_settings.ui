@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CxxWithGptSettings</class>
+ <widget class="QWidget" name="CxxWithGptSettings">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="labelAiKey">
+     <property name="text">
+      <string>AI Key:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="lineEditAiKey"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelAiEndpoint">
+     <property name="text">
+      <string>AI Endpoint:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="lineEditAiEndpoint"/>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,6 @@
+<kcfgc>
+    <nameSpace>CxxWithGpt</nameSpace>
+    <className>Settings</className>
+    <singleton>true</singleton>
+    <fileName>cxx_with_gpt_settings</fileName>
+</kcfgc>

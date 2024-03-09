@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/ui">
+        <file>rcfile.ui.rc</file>
+    </qresource>
+</RCC>
+
