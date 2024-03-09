@@ -1,0 +1,4 @@
+#pragma once
+#include <string_view>
+
+static std::string_view api_key{"ENTER_HERE_VALID_KEY"};
