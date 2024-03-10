@@ -28,6 +28,7 @@ kdevplatform_add_plugin(cxx_with_gpt
 target_link_libraries(cxx_with_gpt
     KDev::Interfaces
     ai_processing::core
+    ${BASIC_LINK_FLAGS}
 )
 
 target_compile_options( cxx_with_gpt PUBLIC -fexceptions)

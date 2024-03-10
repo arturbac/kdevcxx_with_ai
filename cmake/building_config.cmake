@@ -5,7 +5,7 @@ check_term_color()
 message("testing common flags for all projects")
 if(CXX_ENABLE_SANITIZE)
 
-  set(CMAKE_REQUIRED_LIBRARIES "-lasan" )
+  set(CMAKE_REQUIRED_LIBRARIES "-fsanitize=address" )
   check_cxx_compiler_flag("-fsanitize=address" CXX_SANITIZE_ADDRESS)
   if(CXX_SANITIZE_ADDRESS)
     set(LINKING_DEPS_REQUIRED -fsanitize=address -fsanitize=undefined)

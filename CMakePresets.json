@@ -1,0 +1,142 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "cfg-clang",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "cfg-gcc",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "clnag-debug",
+      "description": "Configure for clang debug build",
+      "inherits": [ "cfg-clang" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "gcc-debug",
+      "description": "Configure for gcc debug build",
+      "inherits": [ "cfg-gcc" ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release-time-trace",
+      "description": "Configure for release build",
+      "inherits": [ "cfg-clang" ],
+      "binaryDir": "${sourceDir}/build/release-time-trace",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "-ftime-trace -fno-omit-frame-pointer",
+        "SIMPLE_ENUM_ENABLE_TIME_TRACE": "ON"
+      }
+    },
+    {
+      "name": "clang-release",
+      "description": "Configure for release build",
+      "inherits": [ "cfg-clang" ],
+      "binaryDir": "${sourceDir}/build/clang-release"
+    },
+    {
+      "name": "clang-release-test-asan",
+      "description": "Configure for release build with address sanitizer",
+      "inherits": [ "cfg-clang" ],
+      "binaryDir": "${sourceDir}/build/release-test-asan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "-ggdb -fvisibility=default -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize=undefined",
+        "CXX_ENABLE_SANITIZE" : "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "clnag-debug",
+      "configurePreset": "clnag-debug"
+    },
+    {
+      "name": "release-time-trace",
+      "configurePreset": "release-time-trace"
+    },
+    {
+      "name": "clang-release",
+      "configurePreset": "clang-release"
+    },
+    {
+      "name": "clang-release-test-asan",
+      "configurePreset": "clang-release-test-asan"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "clang-release-test-asan",
+      "configurePreset": "clang-release-test-asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "clang-release",
+      "configurePreset": "clang-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name" : "clang-release",
+      "description" : "tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "clang-release"
+        },
+        {
+          "type": "build",
+          "name": "clang-release"
+        },
+        {
+          "type": "test",
+          "name": "clang-release"
+        }
+      ]
+    },
+    {
+      "name" : "clang-release-test-asan",
+      "description" : "tests with asan",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "clang-release-test-asan"
+        },
+        {
+          "type": "build",
+          "name": "clang-release-test-asan"
+        },
+        {
+          "type": "test",
+          "name": "clang-release-test-asan"
+        }
+      ]
+    }
+  ]
+}

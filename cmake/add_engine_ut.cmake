@@ -5,6 +5,7 @@ function(add_ut_test_target source_file_name)
     target_link_libraries(${test_executable_name} PRIVATE
                           ai_processing::core
                           Boost::ut
+                          ${BASIC_LINK_FLAGS}
                          )
     target_compile_options(${test_executable_name} PUBLIC -Wno-global-constructors )
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
