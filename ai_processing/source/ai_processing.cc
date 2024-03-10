@@ -242,7 +242,7 @@ auto process_ai_response(model_response_text_t const & data, std::string && clan
     return fmt::format(
       R"(
 // Command send {}
-#if 0
+#if 1
 {}
 #endif
 )",
@@ -253,7 +253,7 @@ auto process_ai_response(model_response_text_t const & data, std::string && clan
     return fmt::format(
       R"(
 // Command send {}
-#if 1
+#if 0
 {}
 #else
 {}
