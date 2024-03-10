@@ -1,5 +1,6 @@
 #ifndef Q_MOC_RUN
 #include "network.h"
+#include <aiprocess/log.h>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -19,9 +20,6 @@
 //      -d '{"prompt": "Hello, world!", "max_tokens": 5}'
 //      https://api.openai.com/v1/engines/gpt-3.5-turbo/completions
 //
-static constexpr std::string_view text_bar{
-  "----------------------------------------------------------------------------------------\n"
-};
 
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace http = beast::http;    // from <boost/beast/http.hpp>
@@ -79,6 +77,8 @@ static auto to_string(http::request<http::string_body> const & req) -> std::stri
   return request_text;
   }
 
+using namespace aiprocess;
+
 auto send_text_to_gpt(
   std::string_view host,
   std::string_view port,
@@ -103,9 +103,11 @@ auto send_text_to_gpt(
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if(!SSL_set_tlsext_host_name(stream.native_handle(), host.data()))
-      throw beast::system_error(
-        beast::error_code(static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()),
-        "Failed to set SNI Hostname"
+      return unexpected_error(
+        send_text_to_gpt_error::failed_to_set_SNI_hostname,
+        "net ssl error [{}] {}",
+        static_cast<int>(::ERR_get_error()),
+        net::error::get_ssl_category().message(::ERR_get_error())
       );
 
     // Look up the domain name
@@ -126,7 +128,10 @@ auto send_text_to_gpt(
     req.body() = text;
     req.prepare_payload();
 
-    fmt::print("{}Send:\n{}\n{}", text_bar, to_string(req), text_bar);
+      {
+      auto http_message_string{to_string(req)};
+      snpt::info("{}", http_message_string);
+      }
 
     // Send the HTTP request to the remote host
     http::write(stream, req);
@@ -140,7 +145,10 @@ auto send_text_to_gpt(
     // Receive the HTTP response
     http::read(stream, buffer, res);
 
-    fmt::print("{}Received:\n{}\n{}", text_bar, to_string(res), text_bar);
+      {
+      auto http_response_text{to_string(res)};
+      snpt::info("{}", http_response_text);
+      }
 
     // Gracefully close the stream
     beast::error_code ec;
@@ -169,12 +177,12 @@ auto send_text_to_gpt(
       // Beast returns the error beast::http::error::partial_message.
       // Therefore, if we see a short read here, it has occurred
       // after the message has been completed, so it is safe to ignore it.
-      fmt::print("{}Network Warn:\n{}\n{}", text_bar, ec.what(), text_bar);
+      warn("Network Warn:\n{}", ec.what());
       ec = {};
       }
     if(ec)
       {
-      fmt::print("{}Network Error:\n{}\n{}", text_bar, ec.what(), text_bar);
+      li::error("Network Error:\n{}", ec.what());
       // return unexpected{send_text_to_gpt_error::network_error};
       }
 
@@ -183,11 +191,11 @@ auto send_text_to_gpt(
     }
   catch(std::exception const & e)
     {
-    fmt::print("{}Network Error:\n{}\n{}", text_bar, e.what(), text_bar);
+    li::error("Network Error:\n{}", e.what());
     return unexpected{send_text_to_gpt_error::other_exception};
     }
   }
-
+#if 0
 auto parse(std::string_view url) -> url_components
   {
   url_components components;
@@ -229,5 +237,5 @@ auto parse(std::string_view url) -> url_components
 
   return components;
   }
-
+#endif
 #endif

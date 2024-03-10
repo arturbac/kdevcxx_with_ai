@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Redirect output to stderr.
+exec 1>&2
+
+# Specify the file extensions you want to apply clang-format to
+FILES_PATTERN='\.(cpp|hpp|c|cxx|cc|h)$'
+
+# Get a list of all staged files matching the pattern
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=d | grep -E $FILES_PATTERN)
+
+# Exit if there are no C/C++ files staged
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+# Temporary file to store clang-format output
+FORMAT_DIFF=$(mktemp)
+
+# Check each file
+for FILE in $STAGED_FILES; do
+  # Apply clang-format to all staged files and write the output to the temporary file
+  git show ":$FILE" | clang-format "$FILE" > "$FORMAT_DIFF"
+  if ! cmp -s "$FORMAT_DIFF" "$FILE"; then
+    echo "Error: $FILE is not formatted correctly. Please run clang-format."
+    rm "$FORMAT_DIFF"
+    exit 1
+  fi
+done
+
+rm "$FORMAT_DIFF"
+exit 0
+

@@ -5,11 +5,15 @@
 
 #include <simple_enum/simple_enum.hpp>
 #include <aiprocess/trim_white_space.h>
+#include <aiprocess/log.h>
+#include <aiprocess/app_settings.h>
 
 int main()
   {
   using namespace boost::ut;
   using namespace std::string_view_literals;
+
+  aiprocess::setup_loggers(aiprocess::app_settings_t{.log_path = "network_ut"});
 
   "send_text echo test"_test = []
   {

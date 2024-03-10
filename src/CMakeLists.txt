@@ -3,7 +3,8 @@ set(CXX_WITH_GPT_UI cxx_with_gpt_settings.ui)
 qt5_wrap_ui(CXX_WITH_GPT_UI_HEADERS ${CXX_WITH_GPT_UI})
 
 set(cxx_with_gpt_SRCS
-    cxx_with_gpt.cpp
+    cxx_with_gpt.cc
+    info_dialog.cc
     rcfile.ui.rc
     ${CXX_WITH_GPT_UI_HEADERS}
 )

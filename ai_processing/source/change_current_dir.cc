@@ -1,4 +1,5 @@
 #include <aiprocess/change_current_dir.h>
+#include <aiprocess/log.h>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -12,13 +13,20 @@ auto change_current_directory(std::string_view new_directory) noexcept -> expect
     fs::current_path(fs::path{new_directory});
     return {};
     }
-  catch(std::filesystem::filesystem_error const &)
+  catch(std::filesystem::filesystem_error const & ec)
     {
-    return unexpected{change_directory_error::filesystem_error};
+    return unexpected_error(
+      change_directory_error::filesystem_error,
+      "filesystem exception during creation of directory {} {}",
+      new_directory,
+      ec.what()
+    );
     }
   catch(...)
     {
-    return unexpected{change_directory_error::unhandled_exception};
+    return unexpected_error(
+      change_directory_error::unhandled_exception, "Unhandled exception during creation of directory {}", new_directory
+    );
     }
   }
-  }
+  }  // namespace aiprocess

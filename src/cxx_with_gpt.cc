@@ -3,7 +3,7 @@
 // #include <debug.h>
 
 #include <kpluginfactory.h>
-
+#include <info_dialog.h>
 #include <kpluginloader.h>
 #include <kactioncollection.h>
 #include <QAction>
@@ -16,6 +16,8 @@
 #include <QProgressDialog>
 
 #ifndef Q_MOC_RUN
+#include <aiprocess/app_settings.h>
+#include <aiprocess/log.h>
 #include <ai_processing.h>
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
@@ -31,6 +33,10 @@ enum class get_view_file_path_error
   no_document,
   unhandled_exception
   };
+using aiprocess::debug;
+using aiprocess::info;
+using aiprocess::log;
+using aiprocess::warn;
 
 [[nodiscard]]
 static auto get_view_file_path(KTextEditor::View const & view
@@ -53,6 +59,20 @@ K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "cxx_with_gpt.json", registerPlu
 
 cxx_with_gpt::cxx_with_gpt(QObject * parent, QVariantList const &) : KDevelop::IPlugin("cxx_with_gpt", parent)
   {
+  log(aiprocess::level::info, "Starting plugin KDevCxx_With_Ai");
+  settings = aiprocess::load_app_settings();
+  aiprocess::setup_loggers(settings);
+  info("Settings loaded");
+  auto aisettings{aiprocess::load_ai_settings()};
+  if(aisettings.api_key.empty())
+    {
+    info_dialog dialog(
+      "KDevCxx_With_Ai key setup",
+      "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json and enter Your API key before "
+      "calling any functions and adjust Your rules for AI. You can change them at any time without restarting KDevelop"
+    );
+    dialog.exec();
+    }
   // qDebug() << "cxx_with_gpt::cxx_with_gpt\n";
   //   setupConfigurationInterface();
   //   auto editor = KTextEditor::Editor::instance();
@@ -71,7 +91,8 @@ void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & x
   QAction * myAction = new QAction(QIcon(":/icons/my_icon.png"), tr("&Process with AI"), this);
   myAction->setToolTip(tr("Do something interesting with AI"));
 
-  myAction->setShortcut(Qt::CTRL + Qt::Key_M);
+  myAction->setShortcut(settings.activation_keys);
+  info("Key for AI binded to {}", settings.activation_keys);
 
   actions.addAction("process_with_ai", myAction);
   connect(myAction, &QAction::triggered, this, &cxx_with_gpt::on_process_with_ai);
@@ -81,6 +102,19 @@ void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & x
 
 void cxx_with_gpt::on_process_with_ai()
   {
+    {
+    auto aisettings{aiprocess::load_ai_settings()};
+    if(aisettings.api_key.empty())
+      {
+      info_dialog dialog(
+        "KDevCxx_With_Ai key setup still not done ..",
+        "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json and enter Your API key before "
+        "calling any functions and adjust Your rules for AI. You can change them at any time without restarting "
+        "KDevelop"
+      );
+      dialog.exec();
+      }
+    }
   using namespace std::chrono_literals;
   // qDebug() << "\nMy action was triggered!\n";
   KTextEditor::View * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
@@ -93,25 +127,26 @@ void cxx_with_gpt::on_process_with_ai()
       qDebug() << "Invalid view->document";
       return;
       }
-    document_read_only_t read_only_guard{*document};
-
+    // document_read_only_t read_only_guard{*document};
+    info("Processing OpenAI request ...");
     QProgressDialog progressDialog("Processing OpenAI Request...", "Cancel", 0, 100);
-    progressDialog.setWindowModality(Qt::NonModal);
+    progressDialog.setWindowModality(Qt::WindowModal);
     progressDialog.show();
 
     QString selected_text = view->selectionText();
 
     auto fn_call_openai = [](std::string text) -> expected<model_response_text_t, process_with_ai_error>
     { return process_with_ai(std::move(text)); };
-    qDebug() << "Async called";
+
     auto async_result = std::async(std::launch::async, fn_call_openai, selected_text.toStdString());
+    debug("async to OpenAI executed ...");
 
     std::this_thread::yield();
 
     while(async_result.wait_for(50ms) != std::future_status::ready)
       QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     auto result = async_result.get();
-    qDebug() << "Async done";
+    debug("async to OpenAI done ...");
     // auto result = process_with_ai(selected_text.toStdString());
 
     if(result)
@@ -121,16 +156,19 @@ void cxx_with_gpt::on_process_with_ai()
         cur_work_dir = std::move(path.value());
       auto const & response{*result};
       auto new_text = process_ai_response(response, std::move(cur_work_dir));
-      fmt::print("cxx_with_gpt: Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
+      debug("Proocessed response Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
 
       // make it read write to apply chnages
-      read_only_guard.clear_state();
+      // read_only_guard.clear_state();
       if(!new_text.empty())
+        {
         document->replaceText(view->selectionRange(), QString::fromStdString(new_text));
+        debug("document->replaceText called ...");
+        }
       }
     else
       {
-      fmt::print("Error: {}\n", simple_enum::enum_name(result.error()));
+      aiprocess::li::error("Got error from async {}\n", result.error());
       }
     }
   }
