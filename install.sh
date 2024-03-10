@@ -1,17 +1,38 @@
 #!/bin/bash
 
-# Define source and destination paths
-# SOURCE="build/debug/bin/kdevcxx_with_ai.so"
+# Source file
 SOURCE="build/clang-release/bin/kdevcxx_with_ai.so"
-DESTINATION="/usr/lib64/qt5/plugins/kdevplatform/513/kdevcxx_with_ai.so"
 
-# Use sudo to copy the file to the destination
-sudo cp "$SOURCE" "$DESTINATION"
-
-# Check if the copy operation was successful
-if [ $? -eq 0 ]; then
-    echo "Copy operation successful."
+# Search for kdevclangsupport.so and update DESTINATION
+FOUND=$(find /usr -type f -name kdevclangsupport.so 2>/dev/null | head -n 1)
+if [[ -z "$FOUND" ]]; then
+    echo "kdevelop plugin directory not found."
+    exit 1
 else
-    echo "Copy operation failed."
+    DESTINATION="${FOUND/kdevclangsupport.so/kdevcxx_with_ai.so}"
 fi
 
+echo "The file $SOURCE will be copied to $DESTINATION using sudo mode, requiring elevated permissions."
+echo "Do you want to continue? [Y/N]"
+read -r CONFIRM
+if [[ "$CONFIRM" != "Y" && "$CONFIRM" != "y" ]]; then
+    echo "Operation cancelled."
+    exit 0
+fi
+
+echo "Are you absolutely sure? What if I wipe out your system in sudo mode? [Y/N]"
+read -r CONFIRM_AGAIN
+if [[ "$CONFIRM_AGAIN" != "Y" && "$CONFIRM_AGAIN" != "y" ]]; then
+    echo "Operation cancelled."
+    exit 0
+fi
+
+# Copy the file to the destination using sudo
+sudo cp "$SOURCE" "$DESTINATION"
+
+# Verify the copy operation
+if [ $? -eq 0 ]; then
+    echo "Plugin installation successful."
+else
+    echo "Plugin installation failed."
+fi
