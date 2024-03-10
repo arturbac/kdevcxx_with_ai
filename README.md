@@ -19,6 +19,32 @@ KDevCXX with AI is an innovative extension for the KDevelop IDE, focusing on int
 - Internet connection for accessing AI features.
 
 
+## Required System Packages
+
+- **CMake**: Required to configure the build system.
+- **Boost**: Version 1.66.0 or later, components `system` and `thread` required.
+- **OpenSSL**: Necessary for https secure data handling.
+
+Install these packages using your system's package manager.
+
+## External Libraries Managed with CPM
+
+This project uses CPM for automatic management of external libraries:
+
+- **simple_enum** from [`arturbac/simple_enum`](https://github.com/arturbac/simple_enum)
+- **small_vectors** from [`arturbac/small_vectors`](https://github.com/arturbac/small_vectors)
+- **stralgo** from [`arturbac/stralgo`](https://github.com/arturbac/stralgo)
+- **glaze** from [`stephenberry/glaze`](https://github.com/stephenberry/glaze)
+- **fmt** from [`fmtlib/fmt`](https://github.com/fmtlib/fmt)
+
+## KDE Dependencies
+
+KDE frameworks are utilized, requiring:
+
+- **Extra CMake Modules (ECM)** version `5.68.0` or newer.
+
+Ensure KDE development libraries and the ECM package are installed.
+
 ## Installation Instructions
 
 Follow these steps to install and configure KDevCXX with AI:
@@ -42,7 +68,7 @@ cp ai_processing/include/temp_auth_data.h.example ai_processing/include/temp_aut
 
 ### 3. Configure OpenAI Key
 
-Currently, the OpenAI key is temporarily embedded in the binary. This will change in future versions. For now, open `ai_processing/include/temp_auth_data.h` and replace the placeholder with your actual OpenAI key.
+Currently, the OpenAI key is temporarily embedded in the binary. This will change in future versions. For now, open `ai_processing/include/temp_auth_data.h` and replace the placeholder with your actual OpenAI key. ( I will soon add configuration file)
 
 ### 4. Build the Plugin
 
