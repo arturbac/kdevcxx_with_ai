@@ -67,11 +67,7 @@ cd kdevcxx_with_ai
 cp ai_processing/include/temp_auth_data.h.example ai_processing/include/temp_auth_data.h
 ```
 
-### 3. Configure OpenAI Key
-
-Currently, the OpenAI key is temporarily embedded in the binary. This will change in future versions. For now, open `ai_processing/include/temp_auth_data.h` and replace the placeholder with your actual OpenAI key. ( I will soon add configuration file)
-
-### 4. Build the Plugin
+### 3. Build the Plugin
 
 Use CMake to build the plugin with the following command:
 
@@ -79,7 +75,7 @@ Use CMake to build the plugin with the following command:
 cmake --workflow --preset="clang-release"
 ```
 
-### 5. Install the Plugin
+### 4. Install the Plugin
 
 Determine the appropriate installation directory for your system. The following commands copy the built plugin to a common location for KDevelop plugins. Adjust the `DESTINATION` path as necessary for your system:
 
@@ -99,12 +95,13 @@ else
 fi
 ```
 
+### 5. Configure OpenAI Key
+
+Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings located at ~/.config/kdevcxx_with_ai.
+
 ## Usage
 
 After installing the plugin, restart KDevelop. The AI features should now be seamlessly integrated into your IDE.
-
-You can check if it is installed corectly at Kdevelop Settings Plugins
-![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/2cc9bb48-0c0a-43d4-813d-bf036a546522)
 
 To use the AI functionality within the editor, follow these steps:
 
