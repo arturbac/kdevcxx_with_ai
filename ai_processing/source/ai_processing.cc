@@ -5,6 +5,8 @@
 #include <aiprocess/clang_format.h>
 #include <aiprocess/trim_white_space.h>
 #include <aiprocess/remove_pattern.h>
+#include <aiprocess/app_settings.h>
+#include <aiprocess/log.h>
 
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
@@ -12,7 +14,9 @@
 #include <glaze/json/read.hpp>
 #include <stralgo/strconv_numeric.h>
 #include <temp_auth_data.h>
-
+#include <cctype>
+#include <algorithm>
+#include <ranges>
 // 1. Text Completion (/v1/completions)
 //
 //     Purpose: Generate text completions or continuations based on a prompt.
@@ -65,12 +69,7 @@
 //     Engines: Specialized moderation models designed to flag content issues.
 static constexpr std::string_view command_start_delim = "[AI";
 static constexpr std::string_view command_end_delim = "]";
-static constexpr std::string_view ai_rules{
-  "You are great c++23 coder, prefering std::ranges and std::views over while and for loops,"
-  " using nodiscard if needed, you prefer short and fast code, when writing function you are using trailing return,"
-  " using lower_case convention always, if implementing  unit tests You use boost-ext/ut,"
-  " you dont produce explanations unless asked for, you always return ONLY CODE unless asked for something else"
-};
+
 using namespace std::string_view_literals;
 
 // gpt-3.5-turbo
@@ -103,15 +102,32 @@ struct ai_chat_command_json
   };
 
 #endif
+using namespace aiprocess;
+
+static auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool
+  {
+  // Example criteria: key should be 40 characters long and only contain alphanumeric characters
+  constexpr size_t expected_length = 40;
+  if(key.length() != expected_length)
+    return false;
+
+  // Check if all characters in the key are alphanumeric using std::ranges::all_of
+  return std::ranges::all_of(key, [](unsigned char c) { return std::isalnum(c); });
+  }
+
 // static std::string_view api_url{"https://api.openai.com/v1/engines/code-davinci-002/completions"};
 // https://platform.openai.com/docs/deprecations
-expected<model_response_text_t, process_with_ai_error> process_with_ai(std::string && user_data)
+auto process_with_ai(std::string && user_data) -> expected<model_response_text_t, process_with_ai_error>
 try
   {
   using enum process_with_ai_error;
   std::string result;
 
-  // fmt::print("\nAI: Selecetd [{}]\n", user_data);
+  aiprocess::ai_settings_t aisettings{aiprocess::load_ai_settings()};
+  // info("checking api key ..");
+  // if(!is_valid_openai_bearer_key(aisettings.api_key))
+  // return unexpected_error(invalid_api_key, "invalid key bailing out");
+
   auto start_pos = user_data.find(command_start_delim);
   auto end_pos = user_data.find(command_end_delim, start_pos);
 
@@ -123,7 +139,7 @@ try
         .erase(0, 1);
 
   if(command_text.empty())
-    return unexpected{no_valid_command};
+    return unexpected_error(no_valid_command, "command_text is empty nothing to do ..");
 
   std::string code_text = user_data.substr(end_pos + command_end_delim.length());
 
@@ -133,7 +149,7 @@ try
 #else
   ai_chat_command_json command{};
   command.messages[0].role = "system";
-  command.messages[0].content = ai_rules;
+  command.messages[0].content = aisettings.cxx_rules;
   command.messages[1].role = "user";
   command.messages[1].content = stralgo::stl::merge('[', command_text, "]\n"sv, code_text);
   size_t const aprox_tokens{code_text.size() / 2 + command_text.size()};
@@ -142,30 +158,37 @@ try
     command.max_tokens = uint16_t(aprox_tokens);
   // Serialize the object to a JSON string
   std::string serialized = glz::write_json(command);
-  // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
+  if(serialized.empty())
+    return unexpected_error(
+      json_serialization_error,
+      "json serialization failed of command.. system {} user {}",
+      command.messages[0].content,
+      command.messages[1].content
+    );
+    // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
 
 #ifndef ENABLE_CHAT_COMPLETIONS
-  auto res{
-    send_text_to_gpt("api.openai.com", "443", "/v1/completions", api_key, aiprocess::trim_white_space(serialized), 11)
-  };
+  auto res{send_text_to_gpt(
+    "api.openai.com", "443", "/v1/completions", aisettings.api_key, aiprocess::trim_white_space(serialized), 11
+  )};
 #else
   auto res{send_text_to_gpt(
-    "api.openai.com", "443", "/v1/chat/completions", api_key, aiprocess::trim_white_space(serialized), 11
+    "api.openai.com", "443", "/v1/chat/completions", aisettings.api_key, aiprocess::trim_white_space(serialized), 11
   )};
 #endif
   // auto res{send_text_to_gpt("api.openai.com", "443", "/v1/engines/gpt-3.5-turbo/completions", api_key, serialized,
   // 11)};
   if(res)
     {
-    // fmt::print("\nAI: response [{}]\n", res.value());
+    debug("AI: response recived");
     return model_response_text_t{
       .command = std::move(command_text), .send_text = code_text, .recived_text = std::move(res.value())
     };
     }
   else
-    fmt::print("\nAI: response error [{}]\n", simple_enum::enum_name(res.error()));
-
-  return unexpected{other_error};
+    {
+    return unexpected_error(other_error, "AI: send_text_to_gpt returned error {}", res.error());
+    }
   }
 catch(...)
   {
@@ -205,7 +228,10 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
       if(formatted.has_value())
         str.append(formatted.value());
       else
+        {
+        li::error("Recived errof from clang format continuing with unformatted code ..", formatted.error());
         str.append(unformatted);
+        }
       return str;
     };
 

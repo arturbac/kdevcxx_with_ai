@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Redirect output to stderr.
+exec 1>&2
+
+# Specify the file extensions you want to format.
+EXTENSIONS="(\.cpp|\.cxx|\.cc|\.hpp|\.h)$"
+
+# Get a list of all staged files with the specified extensions.
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E $EXTENSIONS)
+
+# Exit early if no files are staged.
+if [ -z "$FILES" ]; then
+  exit 0
+fi
+
+# Format all staged files and add them back to the staging area.
+echo "Running clang-format on staged files..."
+for FILE in $FILES; do
+  clang-format -i "$FILE"
+  git add "$FILE"
+done
+
+# Inform the user.
+echo "All staged files have been formatted."
+
+exit 0
+

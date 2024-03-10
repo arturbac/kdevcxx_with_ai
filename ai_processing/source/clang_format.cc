@@ -1,5 +1,6 @@
 #include <aiprocess/clang_format.h>
 #include <aiprocess/change_current_dir.h>
+#include <aiprocess/log.h>
 #include <filesystem>
 #include <fstream>
 #include <stralgo/stralgo.h>
@@ -21,15 +22,17 @@ try
       {
       std::ofstream input_file(input_filename);
       if(!input_file)
-        return unexpected(input_file_creation_failed);
+        return unexpected_error(
+          input_file_creation_failed, "Failed to open file for write temporary file {}", input_filename.string()
+        );
       input_file << code;
       }
     if(!working_directory.empty())
       if(auto res{
-           change_current_directory(working_directory).transform_error([](auto) { return input_file_creation_failed; })
+           change_current_directory(working_directory).transform_error([](auto) { return cannot_change_directory; })
          };
          !res.has_value())
-        return unexpected{res.error()};
+        return unexpected_error(res.error(), "Failed");
 
     // Construct the clang-format command
     auto input_filename_string{input_filename.string()};
@@ -44,11 +47,11 @@ try
     )};
     // Execute clang-format
     if(std::system(command.c_str()) != 0)
-      return unexpected(command_execution_failed);
+      return unexpected_error(command_execution_failed, "Could not read back formatted file {}", command);
 
     std::ifstream output_file(output_filename);
     if(!output_file)
-      return unexpected(output_file_read_failed);
+      return unexpected_error(output_file_read_failed, "Reading back file failed {}", command);
     std::string formatted_code((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
 
     std::filesystem::remove(input_filename);
@@ -57,8 +60,12 @@ try
     return formatted_code;
     }
   }
+catch(std::exception const & ec)
+  {
+  return unexpected_error(clang_format_error::unhandled_exception, "Unhandled exception {}", ec.what());
+  }
 catch(...)
   {
-  return unexpected(clang_format_error::unhandled_exception);
+  return unexpected_error(clang_format_error::unhandled_exception, "Unhandled exception");
   }
   }  // namespace aiprocess

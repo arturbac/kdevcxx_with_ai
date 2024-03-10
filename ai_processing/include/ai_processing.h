@@ -6,6 +6,7 @@
 #include <string>
 #include "expectd.h"
 #include <optional>
+#include <simple_enum/simple_enum.hpp>
 
 #define ENABLE_CHAT_COMPLETIONS
 
@@ -27,12 +28,19 @@
 // /v1/moderations	text-moderation-stable, text-moderation-latest
 // /v1/images/generations	dall-e-2, dall-e-3
 
-
 enum struct process_with_ai_error
   {
   other_error,
+  invalid_api_key,
+  json_serialization_error,
   no_valid_command
   };
+
+consteval auto adl_enum_bounds(process_with_ai_error)
+  {
+  using enum process_with_ai_error;
+  return simple_enum::adl_info{other_error, no_valid_command};
+  }
 
 struct model_response_text_t
   {
@@ -55,16 +63,17 @@ struct message_t
   std::string content;
   };
 
-struct model_choice_data_t {
+struct model_choice_data_t
+  {
 #ifndef ENABLE_CHAT_COMPLETIONS
-  std::string text; // Generated text by the model.
+  std::string text;  // Generated text by the model.
 #else
-  message_t message; // Message object representing the generated content.
+  message_t message;  // Message object representing the generated content.
 #endif
-  std::string finish_reason; // Reason for the model's stopping point ('length' or 'stop').
-  std::size_t index; // Index of the choice, starting from 0.
-  std::optional<double> logprobs; // Optional log probabilities for tokens in the completion.
-};
+  std::string finish_reason;       // Reason for the model's stopping point ('length' or 'stop').
+  std::size_t index;               // Index of the choice, starting from 0.
+  std::optional<double> logprobs;  // Optional log probabilities for tokens in the completion.
+  };
 
 struct model_usage_t
   {
