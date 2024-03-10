@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.21)
 project(kdevcxx_with_ai LANGUAGES CXX
     HOMEPAGE_URL "http://github/arturbac/kdevcxx_with_ai"
     DESCRIPTION "KDevelop OpenAI API plugin"
+    VERSION 0.1.0
    )
 
 set(CMAKE_CXX_STANDARD 23)
