@@ -23,6 +23,8 @@ enum struct send_text_to_gpt_error
   network_error,
   other_exception
   };
+
+
 [[nodiscard]]
 auto send_text_to_gpt(
   std::string_view host,
@@ -32,4 +34,6 @@ auto send_text_to_gpt(
   std::string_view text,
   int version
 ) -> expected<std::string, send_text_to_gpt_error>;
+
+
 

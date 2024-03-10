@@ -13,12 +13,16 @@
 #include <KConfigCore/KConfigGroup>
 #include <KSharedConfig>
 #include <kcoreconfigskeleton.h>
+#include <QProgressDialog>
 
 #ifndef Q_MOC_RUN
 #include <ai_processing.h>
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
 #include <string>
+#include <future>
+#include <thread>
+#include <chrono>
 #endif
 
 enum class get_view_file_path_error
@@ -65,7 +69,8 @@ void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & x
   {
   QAction * myAction = new QAction(QIcon(":/icons/my_icon.png"), tr("&Process with AI"), this);
   myAction->setToolTip(tr("Do something interesting with AI"));
-  myAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_M));
+
+  myAction->setShortcut(Qt::CTRL + Qt::Key_M);
 
   actions.addAction("process_with_ai", myAction);
   connect(myAction, &QAction::triggered, this, &cxx_with_gpt::on_process_with_ai);
@@ -75,23 +80,41 @@ void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & x
 
 void cxx_with_gpt::on_process_with_ai()
   {
+  using namespace std::chrono_literals;
   // qDebug() << "\nMy action was triggered!\n";
   KTextEditor::View * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
   if(nullptr != view && view->selection())
     {
-    // Read the current selected text
-    QString selected_text = view->selectionText();
-    // qDebug() << "\ncxx_with_gpt: selecetd [" << selected_text << "]\n";
-    std::string clang_format_working_directory{};
-    if(auto path{get_view_file_path(*view)}; path.has_value())
-      clang_format_working_directory = std::move(path.value());
+    QProgressDialog progressDialog("Processing OpenAI Request...", "Cancel", 0, 100);
+    progressDialog.setWindowModality(Qt::WindowModal);  // Make the dialog modal
+    progressDialog.show();
 
-    auto result = process_with_ai(selected_text.toStdString());
+    QString selected_text = view->selectionText();
+
+    auto fn_call_openai = [](std::string text) -> expected<model_response_text_t, process_with_ai_error>
+    {
+    return process_with_ai(std::move(text));
+    };
+    qDebug() << "Async called";
+    auto async_result = std::async(std::launch::async, fn_call_openai, selected_text.toStdString());
+
+    std::this_thread::yield();
+
+    while(async_result.wait_for(50ms) != std::future_status::ready)
+      {
+      QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+      }
+    auto result = async_result.get();
+    qDebug() << "Async done";
+    // auto result = process_with_ai(selected_text.toStdString());
 
     if(result)
       {
+      std::string cur_work_dir{};
+      if(auto path{get_view_file_path(*view)}; path.has_value())
+        cur_work_dir = std::move(path.value());
       auto const & response{*result};
-      auto new_text = process_ai_response(response, std::move(clang_format_working_directory));
+      auto new_text = process_ai_response(response, std::move(cur_work_dir));
       fmt::print("cxx_with_gpt: Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
       if(!new_text.empty())
         view->document()->replaceText(view->selectionRange(), QString::fromStdString(new_text));
@@ -107,7 +130,7 @@ cxx_with_gpt::~cxx_with_gpt() {}
 
 void cxx_with_gpt::setupConfigurationInterface()
   {
-  qDebug() << "\ncxx_with_gpt::setupConfigurationInterface\n";
+  // qDebug() << "\ncxx_with_gpt::setupConfigurationInterface\n";
   // Check if the dialog already exists to avoid duplicates
   if(KConfigDialog::exists("cxx_with_gpt_settings"))
     return;

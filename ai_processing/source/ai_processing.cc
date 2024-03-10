@@ -66,9 +66,10 @@
 static constexpr std::string_view command_start_delim = "[AI";
 static constexpr std::string_view command_end_delim = "]";
 static constexpr std::string_view ai_rules{
-  "You are great c++23 coder, using C++23, prefering std::ranges and std::views over while and for loops,"
-  " using nodiscard, you prefer short code, using trailing return, using lower_case convention always,"
-  " for unit tests You use boost-ext/ut, you dont produce explanations, you always return ONLY CODE"
+  "You are great c++23 coder, prefering std::ranges and std::views over while and for loops,"
+  " using nodiscard if needed, you prefer short and fast code, when writing function you are using trailing return,"
+  " using lower_case convention always, if implementing  unit tests You use boost-ext/ut,"
+  " you dont produce explanations unless asked for, you always return ONLY CODE unless asked for something else"
 };
 using namespace std::string_view_literals;
 
