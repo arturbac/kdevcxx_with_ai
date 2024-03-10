@@ -112,7 +112,7 @@ To use the AI functionality within the editor, follow these steps:
 
 2. Highlight the request and the target code.
 
-3. Press `Ctrl + M` to activate the AI processing of selected request and code.
+3. Press `Ctrl + 1` to activate the AI processing of selected request and code.
 
 ## Example use 
 
