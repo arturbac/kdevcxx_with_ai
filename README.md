@@ -36,7 +36,8 @@ This project uses CPM for automatic management of external libraries:
 - **stralgo** from [`arturbac/stralgo`](https://github.com/arturbac/stralgo)
 - **glaze** from [`stephenberry/glaze`](https://github.com/stephenberry/glaze)
 - **fmt** from [`fmtlib/fmt`](https://github.com/fmtlib/fmt)
-
+- **ut** from [`C++20 μ(micro)/Unit Testing Framework`](https://github.com/boost-ext/ut)
+  
 ## KDE Dependencies
 
 KDE frameworks are utilized, requiring:
