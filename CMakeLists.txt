@@ -68,7 +68,7 @@ endif()
 CPMAddPackage(
   glaze
   GITHUB_REPOSITORY stephenberry/glaze
-  GIT_TAG        v2.1.8
+  GIT_TAG        v2.2.1
   )
 find_package(glaze REQUIRED)
 #----------------------------------------------------------------
@@ -79,6 +79,16 @@ CPMAddPackage(
   GITHUB_REPOSITORY fmtlib/fmt
   GIT_TAG 10.2.1
 )
+
+#----------------------------------------------------------------
+# spdlog
+#----------------------------------------------------------------
+CPMAddPackage(
+  NAME spdlog
+  GITHUB_REPOSITORY gabime/spdlog
+  GIT_TAG v1.13.0
+)
+find_package(spdlog REQUIRED)
 
 find_package(Boost 1.66.0 REQUIRED COMPONENTS system thread)
 find_package(OpenSSL REQUIRED)
