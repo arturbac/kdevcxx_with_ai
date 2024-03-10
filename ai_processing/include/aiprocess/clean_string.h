@@ -10,8 +10,8 @@
 namespace aiprocess
   {
 /// \brief removes ``` from beginning and end of string
-constexpr auto clean_string(std::string && str) -> std::string
-  {
+constexpr auto clean_string = [](std::string && str) -> std::string
+{
   auto not_backtick = [](char c) noexcept -> bool { return c != '`'; };
 
   auto start = std::ranges::find_if(str, not_backtick);
@@ -24,8 +24,8 @@ constexpr auto clean_string(std::string && str) -> std::string
     }
 
   auto new_end = end.base();
-  str.erase(new_end, str.end());
+  str.erase(new_end, str.end());  // Adjust for the reverse view's base iterator
   str.erase(str.begin(), start);
   return str;
-  }
+};
   }  // namespace aiprocess

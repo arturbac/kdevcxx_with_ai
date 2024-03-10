@@ -3,6 +3,8 @@
 #include "network.h"
 #include <aiprocess/change_current_dir.h>
 #include <aiprocess/clang_format.h>
+#include <aiprocess/trim_white_space.h>
+#include <aiprocess/remove_pattern.h>
 
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
@@ -10,7 +12,6 @@
 #include <glaze/json/read.hpp>
 #include <stralgo/strconv_numeric.h>
 #include <temp_auth_data.h>
-#include <aiprocess/trim_white_space.h>
 
 // 1. Text Completion (/v1/completions)
 //
@@ -71,7 +72,6 @@ static constexpr std::string_view ai_rules{
 };
 using namespace std::string_view_literals;
 
-
 // gpt-3.5-turbo
 // gpt-3.5-turbo-instruct
 // gpt-4
@@ -89,7 +89,6 @@ struct ai_command_json
   double presence_penalty{0.0};
   };
 #else
-
 
 struct ai_chat_command_json
   {
@@ -183,7 +182,7 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
   auto result{glz::read<glz::set_json<default_json_parse_opts>()>(mr, std::string{response_json_data}, ctx)};
   if(result.ec == glz::error_code::none && !mr.id.empty())  // if id is empty en it is invalid json for sure
     {
-    std::size_t choice_nr{};
+    // std::size_t choice_nr{};
     auto fn_format_choice = [&](std::string && str, model_choice_data_t const & mcd) -> std::string
     {
 #ifndef ENABLE_CHAT_COMPLETIONS
@@ -196,8 +195,8 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
 #else
       auto unformatted{stralgo::stl::compose(
         // clang-format off
-        "\t // ["sv, choice_nr, "]\n"sv,
-        "\t"sv, mcd.message.content, '\n'
+        // "\t // ["sv, choice_nr, "]\n"sv,
+        "\t"sv, aiprocess::remove_pattern(aiprocess::remove_pattern(mcd.message.content, "```cpp\n"sv), "```"sv), '\n'
         // clang-format on
       )};
 #endif
@@ -208,7 +207,7 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
         str.append(unformatted);
       return str;
     };
-    
+
     return stralgo::stl::compose(
       // clang-format off
       "/*"sv,
