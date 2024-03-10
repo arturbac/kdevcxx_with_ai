@@ -120,9 +120,13 @@ Command
 
 ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/31e7bcb6-caf1-4a0e-9278-d4560c9266f6)
 
-Executed
+After execution
 
 ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/4565cb0f-9ad2-46e9-bda8-93ff633af673)
+
+Or asking for help with explanations
+
+![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/0f818de6-9146-453d-beed-b66832c9e8ae)
 
 ## License
 
