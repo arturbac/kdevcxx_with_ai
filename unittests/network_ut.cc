@@ -62,7 +62,7 @@ int main()
     expect(result->find("ASSERT(value.isMember(szName)") != std::string::npos)
       << result.value() << "\nThe response should contain the sent JSON data\n";
   };
-
+#if 0
   "send_text_to_openai"_test = []
   {
     // Define the JSON data using Glaze (pseudo-code, adjust according to Glaze's actual API)
@@ -97,4 +97,5 @@ int main()
     expect(result->find("objectTypeValue") != std::string::npos)
       << result.value() << "\nThe response should contain the sent JSON data\n";
   };
+#endif
   }

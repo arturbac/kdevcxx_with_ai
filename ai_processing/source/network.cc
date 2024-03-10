@@ -183,7 +183,7 @@ auto send_text_to_gpt(
     }
   catch(std::exception const & e)
     {
-    fmt::print("Error: {}\n", e.what());
+    fmt::print("{}Network Error:\n{}\n{}", text_bar, e.what(), text_bar);
     return unexpected{send_text_to_gpt_error::other_exception};
     }
   }

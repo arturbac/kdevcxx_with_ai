@@ -48,7 +48,7 @@ K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "cxx_with_gpt.json", registerPlu
 
 cxx_with_gpt::cxx_with_gpt(QObject * parent, QVariantList const &) : KDevelop::IPlugin("cxx_with_gpt", parent)
   {
-  qDebug() << "cxx_with_gpt::cxx_with_gpt\n";
+  // qDebug() << "cxx_with_gpt::cxx_with_gpt\n";
   //   setupConfigurationInterface();
   //   auto editor = KTextEditor::Editor::instance();
   //   connect(editor, &KTextEditor::Editor::documentCreated, this, &cxx_with_gpt::attachActionsToDocument);
@@ -81,7 +81,7 @@ void cxx_with_gpt::on_process_with_ai()
     {
     // Read the current selected text
     QString selected_text = view->selectionText();
-    qDebug() << "\ncxx_with_gpt: selecetd [" << selected_text << "]\n";
+    // qDebug() << "\ncxx_with_gpt: selecetd [" << selected_text << "]\n";
     std::string clang_format_working_directory{};
     if(auto path{get_view_file_path(*view)}; path.has_value())
       clang_format_working_directory = std::move(path.value());

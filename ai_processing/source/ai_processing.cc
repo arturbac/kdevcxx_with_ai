@@ -66,7 +66,7 @@ static constexpr std::string_view command_start_delim = "[AI";
 static constexpr std::string_view command_end_delim = "]";
 static constexpr std::string_view ai_rules{
   "You are great c++23 coder, using C++23, prefering std::ranges and std::views over while and for loops,"
-  " using nodiscard, using trailing return, using lower_case convention always,"
+  " using nodiscard, you prefer short code, using trailing return, using lower_case convention always,"
   " for unit tests You use boost-ext/ut, you dont produce explanations, you always return ONLY CODE"
 };
 using namespace std::string_view_literals;
@@ -97,7 +97,7 @@ struct ai_chat_command_json
   std::array<message_t, 2> messages;
   double temperature{1.0};
   uint16_t max_tokens = 500;
-  double top_p{1.0};
+  double top_p{0.95};
   double frequency_penalty{0.0};
   double presence_penalty{0.0};
   };
@@ -111,7 +111,7 @@ try
   using enum process_with_ai_error;
   std::string result;
 
-  fmt::print("\nAI: Selecetd [{}]\n", user_data);
+  // fmt::print("\nAI: Selecetd [{}]\n", user_data);
   auto start_pos = user_data.find(command_start_delim);
   auto end_pos = user_data.find(command_end_delim, start_pos);
 
@@ -157,7 +157,7 @@ try
   // 11)};
   if(res)
     {
-    fmt::print("\nAI: response [{}]\n", res.value());
+    // fmt::print("\nAI: response [{}]\n", res.value());
     return model_response_text_t{
       .command = std::move(command_text), .send_text = code_text, .recived_text = std::move(res.value())
     };
@@ -202,7 +202,6 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
       )};
 #endif
       auto formatted{aiprocess::clang_format(unformatted, clang_format_working_directory)};
-      // TODO use the path of current file name
       if(formatted.has_value())
         str.append(formatted.value());
       else

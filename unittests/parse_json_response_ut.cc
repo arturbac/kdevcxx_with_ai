@@ -42,7 +42,9 @@ static suite<"glaze_tests"> glaze_tests = []
   "test model_choice_data json"_test = []
   {
     static constexpr std::string_view source_text = R"({
-      "text": "```\n[[nodiscard]] auto get_command_text(const std::string& user_data, const std::string& command_start_delim, const int start_pos, const int end_pos)\n{\n    return std::ranges::views::all(user_data | std::views::drop(start_pos + command_start_delim.length()) | std::views::take(end_pos - (start_pos + command_start_delim.length())) | std::views::drop(1)) | std::ranges::to<std::string>();\n}\n\n// Usage:\nstd::string command_text = get_command_text(user_data, command_start_delim, start_pos, end_pos);\n```",
+      "message" :{
+        "content": "```\n[[nodiscard]] auto get_command_text(const std::string& user_data, const std::string& command_start_delim, const int start_pos, const int end_pos)\n{\n    return std::ranges::views::all(user_data | std::views::drop(start_pos + command_start_delim.length()) | std::views::take(end_pos - (start_pos + command_start_delim.length())) | std::views::drop(1)) | std::ranges::to<std::string>();\n}\n\n// Usage:\nstd::string command_text = get_command_text(user_data, command_start_delim, start_pos, end_pos);\n```"
+        },
       "index": 0,
       "logprobs": null,
       "finish_reason": "stop"
@@ -55,7 +57,9 @@ static suite<"glaze_tests"> glaze_tests = []
   {
     static constexpr std::string_view source_text = R"({"choices": [
     {
-      "text": "```\n[[nodiscard]] auto get_command_text(const std::string& user_data, const std::string& command_start_delim, const int start_pos, const int end_pos)\n{\n    return std::ranges::views::all(user_data | std::views::drop(start_pos + command_start_delim.length()) | std::views::take(end_pos - (start_pos + command_start_delim.length())) | std::views::drop(1)) | std::ranges::to<std::string>();\n}\n\n// Usage:\nstd::string command_text = get_command_text(user_data, command_start_delim, start_pos, end_pos);\n```",
+      "message" :{
+        "content": "```\n[[nodiscard]] auto get_command_text(const std::string& user_data, const std::string& command_start_delim, const int start_pos, const int end_pos)\n{\n    return std::ranges::views::all(user_data | std::views::drop(start_pos + command_start_delim.length()) | std::views::take(end_pos - (start_pos + command_start_delim.length())) | std::views::drop(1)) | std::ranges::to<std::string>();\n}\n\n// Usage:\nstd::string command_text = get_command_text(user_data, command_start_delim, start_pos, end_pos);\n```"
+      },
       "index": 0,
       "logprobs": null,
       "finish_reason": "stop"
@@ -70,11 +74,15 @@ static suite<"glaze_tests"> glaze_tests = []
   "id": "cmpl-90uK2FFgygd7tOjaUY7pGa2ddYVIf",
   "object": "text_completion",
   "created": 1710003530,
-  "model": "gpt-3.5-turbo-instruct",
+  "model": "gpt-4-1106-preview",
   "choices": [
     {
-      "text": "```\n[[nodiscard]] auto get_command_text(const std::string& user_data, const std::string& command_start_delim, const int start_pos, const int end_pos)\n{\n    return std::ranges::views::all(user_data | std::views::drop(start_pos + command_start_delim.length()) | std::views::take(end_pos - (start_pos + command_start_delim.length())) | std::views::drop(1)) | std::ranges::to<std::string>();\n}\n\n// Usage:\nstd::string command_text = get_command_text(user_data, command_start_delim, start_pos, end_pos);\n```",
       "index": 0,
+      "message": 
+        {
+        "role" : "assistant",
+        "content" : "```\n[[nodiscard]] auto get_command_text(const std::string& user_data, const std::string& command_start_delim, const int start_pos, const int end_pos)\n{\n    return std::ranges::views::all(user_data | std::views::drop(start_pos + command_start_delim.length()) | std::views::take(end_pos - (start_pos + command_start_delim.length())) | std::views::drop(1)) | std::ranges::to<std::string>();\n}\n\n// Usage:\nstd::string command_text = get_command_text(user_data, command_start_delim, start_pos, end_pos);\n```"
+        },
       "logprobs": null,
       "finish_reason": "stop"
     }
@@ -99,7 +107,10 @@ static suite<"model_response_tests"> model_response_tests = []
             "created": 1709942237,
             "model": "gpt-3.5-turbo-instruct",
             "choices": [
-                {"text": "{ void fn(\"Test response text\"); }", "finish_reason": "length", "index": 0, "logprobs": 0.99}
+                {
+                "message": {
+                  "content": "{ void fn(\"Test response text\"); }", "finish_reason": "length", "index": 0, "logprobs": 0.99}
+                }
             ]
         })";
 
