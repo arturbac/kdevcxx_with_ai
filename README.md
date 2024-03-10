@@ -5,7 +5,7 @@ KDevCXX with AI is an innovative extension for the KDevelop IDE, focusing on int
 
 ## Features
 
-- **AI-Powered Code Completion**: Utilizes a trained model to suggest code completions, significantly speeding up the development process.
+- **AI-Powered Code Completion**: Utilizes a trained model `gpt-4-1106-preview` to suggest code completions, significantly speeding up the development process.
 - **Documentation Lookup**: Instant access to documentation for C++ standard library functions, classes, and more directly within the IDE.
 - **Code Analysis**: Advanced code analysis features powered by AI, helping to identify potential improvements and optimizations.
 - **Error Correction Suggestions**: Offers suggestions for correcting syntax errors and logical mistakes.
@@ -56,6 +56,7 @@ cmake --workflow --preset="clang-release"
 
 Determine the appropriate installation directory for your system. The following commands copy the built plugin to a common location for KDevelop plugins. Adjust the `DESTINATION` path as necessary for your system:
 
+`Gentoo` example
 ```bash
 SOURCE="build/clang-release/bin/kdevcxx_with_ai.so"
 DESTINATION="/usr/lib64/qt5/plugins/kdevplatform/513/kdevcxx_with_ai.so"
@@ -75,13 +76,26 @@ fi
 
 After installing the plugin, restart KDevelop. The AI features should now be seamlessly integrated into your IDE.
 
+You can check if it is installed corectly at Kdevelop Settings Plugins
+![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/2cc9bb48-0c0a-43d4-813d-bf036a546522)
+
 To use the AI functionality within the editor, follow these steps:
 
 1. Write your AI request in the editor, preceded by `[AI DO something for me with that code]`, followed by the code you wish AI to analyze or modify.
 
 2. Highlight the request and the target code.
 
-3. Press `Ctrl + M` to activate the AI processing.
+3. Press `Ctrl + M` to activate the AI processing of selected request and code.
+
+## Example use 
+
+Command
+
+![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/31e7bcb6-caf1-4a0e-9278-d4560c9266f6)
+
+Executed
+
+![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/4565cb0f-9ad2-46e9-bda8-93ff633af673)
 
 ## License
 
