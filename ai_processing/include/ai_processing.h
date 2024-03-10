@@ -7,14 +7,17 @@
 #include "expectd.h"
 #include <optional>
 
+#define ENABLE_CHAT_COMPLETIONS
 // https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 // Model endpoint compatibility
 // Endpoint	Latest models
+
 // /v1/assistants	All GPT-4 and GPT-3.5 Turbo models except gpt-3.5-turbo-0301 supported. The retrieval tool requires
 // gpt-4-turbo-preview (and subsequent dated model releases) or gpt-3.5-turbo-1106 (and subsequent versions).
 // /v1/audio/transcriptions	whisper-1
 // /v1/audio/translations	whisper-1
 // /v1/audio/speech	tts-1, tts-1-hd
+
 // /v1/chat/completions	gpt-4 and dated model releases, gpt-4-turbo-preview and dated model releases,
 // gpt-4-vision-preview, gpt-4-32k and dated model releases, gpt-3.5-turbo and dated model releases, gpt-3.5-turbo-16k
 // and dated model releases, fine-tuned versions of gpt-3.5-turbo /v1/completions (Legacy)	gpt-3.5-turbo-instruct,
@@ -42,11 +45,19 @@ auto parse_json_response(
 ) -> std::string;
 auto process_ai_response(model_response_text_t const & data, std::string && clang_format_working_directory)
   -> std::string;
-
+struct message_t
+  {
+  std::string role;
+  std::string content;
+  };
 struct model_choice_data_t
   {
+#ifndef ENABLE_CHAT_COMPLETIONS
   // text: The generated text by the model.
   std::string text;
+#else
+  message_t message;
+#endif
   // finish_reason: The reason why the model stopped generating text, such as reaching a token limit or encountering a
   // stop sequence.
   // "length" indicates a natural conclusion based on the token limit set by the user.
@@ -108,42 +119,4 @@ struct model_response_t
 // created: A Unix timestamp indicating when the completion was created.
 // model: Specifies the model used for the completion, here gpt-3.5-turbo-instruct.
 // choices: An array of completion options returned by the model. Typically, for straightforward requests, this array
-// contains a single item. Each choice includes:
-//     text: The generated text by the model.
-//     index: The index of the choice. For most requests, where only one completion is asked for, this will be 0.
-//     logprobs: The log probabilities for each token in the completion, if requested. Here, it is null, indicating that
-//     log probabilities were not requested or are not provided for this completion. finish_reason: The reason why the
-//     model stopped generating further text. Common reasons include reaching the end of the input prompt (stop),
-//     hitting a token limit, or encountering a stop sequence.
-// usage: Contains information about token usage for billing and tracking purposes. It includes:
-//     prompt_tokens: The number of tokens in the prompt.
-//     completion_tokens: The number of tokens in the generated completion.
-//     total_tokens: The sum of prompt_tokens and completion_tokens, indicating the total number of tokens processed.
 
-/*
-#include <glaze/json/read.hpp>
-#include <stralgo/strconv_numeric.h>
-
-struct model_response_text_t
-  {
-  std::string command;
-  std::string send_text;
-  std::string recived_text;
-  };
-struct model_choice_data_t
-  {
-  std::string text;
-  std::string finish_reason;
-  std::size_t index;
-  double logprobs;
-  };
-struct model_response_t
-  {
-  std::string id;  //"cmpl-90eNRqqPnxj7Yh9hWftWCufTH9wMP",
-  std::string object;  // "text_completion",
-  uint64_t created;  // 1709942237,
-  std::string model;  // "gpt-3.5-turbo-instruct",
-  std::vector<model_choice_data_t> choices;
-  std::vector<model_usage_t> usage;
-  };
-*/

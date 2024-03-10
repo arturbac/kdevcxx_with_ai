@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Define source and destination paths
-SOURCE="build/debug/bin/kdevcxx_with_ai.so"
+# SOURCE="build/debug/bin/kdevcxx_with_ai.so"
+SOURCE="build/clang-release/bin/kdevcxx_with_ai.so"
 DESTINATION="/usr/lib64/qt5/plugins/kdevplatform/513/kdevcxx_with_ai.so"
 
 # Use sudo to copy the file to the destination

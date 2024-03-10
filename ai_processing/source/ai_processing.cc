@@ -65,15 +65,19 @@
 static constexpr std::string_view command_start_delim = "[AI";
 static constexpr std::string_view command_end_delim = "]";
 static constexpr std::string_view ai_rules{
-  "Use C++20, prefer std::ranges and std::views over for loops, use nodiscard, use trailing return, use lower_case "
-  "convention always"
+  "You are great c++23 coder, using C++23, prefering std::ranges and std::views over while and for loops,"
+  " using nodiscard, using trailing return, using lower_case convention always,"
+  " for unit tests You use boost-ext/ut, you dont produce explanations, you always return ONLY CODE"
 };
+using namespace std::string_view_literals;
+
 
 // gpt-3.5-turbo
 // gpt-3.5-turbo-instruct
 // gpt-4
 // gpt-4-turbo-preview
 // gpt-4-1106-preview
+#ifndef ENABLE_CHAT_COMPLETIONS
 struct ai_command_json
   {
   std::string model{"gpt-3.5-turbo-instruct"};
@@ -84,7 +88,21 @@ struct ai_command_json
   double frequency_penalty{0.0};
   double presence_penalty{0.0};
   };
+#else
 
+
+struct ai_chat_command_json
+  {
+  std::string model{"gpt-4-1106-preview"};
+  std::array<message_t, 2> messages;
+  double temperature{1.0};
+  uint16_t max_tokens = 500;
+  double top_p{1.0};
+  double frequency_penalty{0.0};
+  double presence_penalty{0.0};
+  };
+
+#endif
 // static std::string_view api_url{"https://api.openai.com/v1/engines/code-davinci-002/completions"};
 // https://platform.openai.com/docs/deprecations
 expected<model_response_text_t, process_with_ai_error> process_with_ai(std::string && user_data)
@@ -109,20 +127,32 @@ try
 
   std::string code_text = user_data.substr(end_pos + command_end_delim.length());
 
-  // prepare json
+#ifndef ENABLE_CHAT_COMPLETIONS
   ai_command_json command{.prompt = fmt::format("[{},{}] {}", ai_rules, command_text, code_text)};
   size_t const aprox_tokens{code_text.size() / 2 + command_text.size()};
+#else
+  ai_chat_command_json command{};
+  command.messages[0].role = "system";
+  command.messages[0].content = ai_rules;
+  command.messages[1].role = "user";
+  command.messages[1].content = stralgo::stl::merge('[', command_text, "]\n"sv, code_text);
+  size_t const aprox_tokens{code_text.size() / 2 + command_text.size()};
+#endif
   if(command.max_tokens < aprox_tokens)
     command.max_tokens = uint16_t(aprox_tokens);
   // Serialize the object to a JSON string
   std::string serialized = glz::write_json(command);
   // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
 
-  /// v1/edits
+#ifndef ENABLE_CHAT_COMPLETIONS
   auto res{
     send_text_to_gpt("api.openai.com", "443", "/v1/completions", api_key, aiprocess::trim_white_space(serialized), 11)
   };
-
+#else
+  auto res{send_text_to_gpt(
+    "api.openai.com", "443", "/v1/chat/completions", api_key, aiprocess::trim_white_space(serialized), 11
+  )};
+#endif
   // auto res{send_text_to_gpt("api.openai.com", "443", "/v1/engines/gpt-3.5-turbo/completions", api_key, serialized,
   // 11)};
   if(res)
@@ -156,12 +186,21 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
     std::size_t choice_nr{};
     auto fn_format_choice = [&](std::string && str, model_choice_data_t const & mcd) -> std::string
     {
+#ifndef ENABLE_CHAT_COMPLETIONS
       auto unformatted{stralgo::stl::compose(
         // clang-format off
         "\t // ["sv, choice_nr, "]\n"sv,
         "\t"sv, mcd.text, '\n'
         // clang-format on
       )};
+#else
+      auto unformatted{stralgo::stl::compose(
+        // clang-format off
+        "\t // ["sv, choice_nr, "]\n"sv,
+        "\t"sv, mcd.message.content, '\n'
+        // clang-format on
+      )};
+#endif
       auto formatted{aiprocess::clang_format(unformatted, clang_format_working_directory)};
       // TODO use the path of current file name
       if(formatted.has_value())
@@ -170,6 +209,7 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
         str.append(unformatted);
       return str;
     };
+    
     return stralgo::stl::compose(
       // clang-format off
       "/*"sv,

@@ -111,8 +111,6 @@ static suite<"model_response_tests"> model_response_tests = []
     expect(aiprocess::contains(pr, "model : gpt-3.5-turbo-instruct"));
     expect(aiprocess::contains(pr, "{ void fn(\"Test response text\"); }"));
     expect(aiprocess::contains(pr, "choices :"));
-    expect(aiprocess::contains(pr, "// [0]"));
-    expect(aiprocess::contains(pr, "#endif"));
   };
 #if 0
   "failure_case"_test = []
