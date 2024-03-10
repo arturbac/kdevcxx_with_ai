@@ -8,6 +8,7 @@
 #include <optional>
 
 #define ENABLE_CHAT_COMPLETIONS
+
 // https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 // Model endpoint compatibility
 // Endpoint	Latest models
@@ -25,6 +26,8 @@
 // /v1/fine_tuning/jobs	gpt-3.5-turbo, babbage-002, davinci-002
 // /v1/moderations	text-moderation-stable, text-moderation-latest
 // /v1/images/generations	dall-e-2, dall-e-3
+
+
 enum struct process_with_ai_error
   {
   other_error,

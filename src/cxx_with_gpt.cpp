@@ -23,6 +23,7 @@
 #include <future>
 #include <thread>
 #include <chrono>
+#include "document_read_only.h"
 #endif
 
 enum class get_view_file_path_error
@@ -83,27 +84,32 @@ void cxx_with_gpt::on_process_with_ai()
   using namespace std::chrono_literals;
   // qDebug() << "\nMy action was triggered!\n";
   KTextEditor::View * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
+
   if(nullptr != view && view->selection())
     {
+    KTextEditor::Document * document = view->document();
+    if(nullptr == document)
+      {
+      qDebug() << "Invalid view->document";
+      return;
+      }
+    document_read_only_t read_only_guard{*document};
+
     QProgressDialog progressDialog("Processing OpenAI Request...", "Cancel", 0, 100);
-    progressDialog.setWindowModality(Qt::WindowModal);  // Make the dialog modal
+    progressDialog.setWindowModality(Qt::NonModal);
     progressDialog.show();
 
     QString selected_text = view->selectionText();
 
     auto fn_call_openai = [](std::string text) -> expected<model_response_text_t, process_with_ai_error>
-    {
-    return process_with_ai(std::move(text));
-    };
+    { return process_with_ai(std::move(text)); };
     qDebug() << "Async called";
     auto async_result = std::async(std::launch::async, fn_call_openai, selected_text.toStdString());
 
     std::this_thread::yield();
 
     while(async_result.wait_for(50ms) != std::future_status::ready)
-      {
       QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-      }
     auto result = async_result.get();
     qDebug() << "Async done";
     // auto result = process_with_ai(selected_text.toStdString());
@@ -116,8 +122,11 @@ void cxx_with_gpt::on_process_with_ai()
       auto const & response{*result};
       auto new_text = process_ai_response(response, std::move(cur_work_dir));
       fmt::print("cxx_with_gpt: Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
+
+      // make it read write to apply chnages
+      read_only_guard.clear_state();
       if(!new_text.empty())
-        view->document()->replaceText(view->selectionRange(), QString::fromStdString(new_text));
+        document->replaceText(view->selectionRange(), QString::fromStdString(new_text));
       }
     else
       {
