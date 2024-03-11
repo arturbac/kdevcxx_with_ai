@@ -13,14 +13,12 @@
 #include <ktexteditor/document.h>
 #include <ktexteditor/editor.h>
 #include <ktexteditor/view.h>
-#include <KPluginFactory>
-#include <KPluginLoader>
-#include <KActionCollection>
-#include <QAction>
-#include <KLocalizedString>
-#include <KConfigDialog>
-#include <QObject>
-#include <memory>
+#include <kpluginfactory.h>
+#include <kpluginloader.h>
+#include <kactioncollection.h>
+#include <qaction.h>
+#include <klocalizedstring.h>
+#include <qobject.h>
 
 class kdevcxx_with_ai : public KDevelop::IPlugin
   {

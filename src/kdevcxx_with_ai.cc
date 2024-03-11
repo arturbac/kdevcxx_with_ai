@@ -11,14 +11,15 @@
 #include <kactioncollection.h>
 #include <qaction.h>
 #include <qapplication.h>
-#include <KLocalizedString>
+#include <klocalizedstring.h>
 #include <ktexteditor/application.h>
 #include <ktexteditor/mainwindow.h>
-#include <KConfigCore/KConfigGroup>
-#include <KSharedConfig>
+#include <KConfigCore/kconfiggroup.h>
+#include <ksharedconfig.h>
 #include <kcoreconfigskeleton.h>
-#include <QProgressDialog>
-#include <QTimer>
+#include <qprogressdialog.h>
+#include <qtimer.h>
+#include <kmessagebox.h>
 
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
@@ -32,6 +33,7 @@
 #include <thread>
 #include <chrono>
 #include "document_read_only.h"
+#include <stralgo/stralgo.h>
 #endif
 
 enum class get_view_file_path_error
@@ -111,6 +113,8 @@ void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString 
   xmlFile = ":/ui/rcfile.ui.rc";
   }
 
+using namespace std::string_view_literals;
+
 void kdevcxx_with_ai::on_process_with_ai()
   {
     {
@@ -181,6 +185,18 @@ void kdevcxx_with_ai::on_process_with_ai()
     else
       {
       aiprocess::li::error("Got error from async {}\n", result.error());
+      QWidget * parentWidget = view;                         // The parent widget, can be 'nullptr' if there's no parent
+      QString title = "Error during processing AI request";  // Title of the error dialog
+      KMessageBox::error(
+        parentWidget,
+        QString::fromStdString(stralgo::stl::merge(
+          "Error processing AI request "sv,
+          simple_enum::enum_name(result.error()),
+          "\ncheck detailed log at ~/.config/kdevcxx_with_ai/"sv,
+          settings.log_path
+        )),
+        title
+      );
       }
     }
   }
