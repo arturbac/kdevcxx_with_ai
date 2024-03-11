@@ -58,16 +58,7 @@ Start by cloning the repository to your local machine using the following comman
 git clone https://github.com/arturbac/kdevcxx_with_ai.git
 ```
 
-### 2. Prepare Configuration Files
-
-Navigate to the cloned directory and copy the example authentication data header file:
-
-```bash
-cd kdevcxx_with_ai
-cp ai_processing/include/temp_auth_data.h.example ai_processing/include/temp_auth_data.h
-```
-
-### 3. Build the Plugin
+### 2. Build the Plugin
 
 Use CMake to build the plugin with the following command:
 
@@ -75,12 +66,12 @@ Use CMake to build the plugin with the following command:
 cmake --workflow --preset="clang-release"
 ```
 
-### 4. Install the Plugin
+### 3. Install the Plugin
 
 Use provided install.sh script it will determine location of kdevplatform plugins and install plugin into that directory
 
 
-### 5. Configure OpenAI Key
+### 4. Configure OpenAI Key
 
 Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings located at ~/.config/kdevcxx_with_ai.
 
