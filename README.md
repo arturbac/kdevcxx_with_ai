@@ -11,6 +11,11 @@ KDevCXX with AI is an innovative extension for the KDevelop IDE, focusing on int
 - **Error Correction Suggestions**: Offers suggestions for correcting syntax errors and logical mistakes.
 - **Refactoring Assistance**: AI-assisted refactoring tools to improve and simplify existing code without changing its external behavior.
 
+## Planned Features
+
+- **Multiple Presets** for AI query assistant working with new and existing code, explanation providing information with tools windows, refactor for refactoring old code
+- **Add kdevelop settings kcm ui** for easier settings access
+  
 ## Getting Started
 
 ### Prerequisites
