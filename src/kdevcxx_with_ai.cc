@@ -24,10 +24,10 @@
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
 #include <aiprocess/log.h>
+#include <aiprocess/obfuscate_text.h>
 #include <ai_processing.h>
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
-#include <aiprocess/log.h>
 #include <string>
 #include <future>
 #include <thread>
@@ -84,7 +84,7 @@ kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDeve
 void kdevcxx_with_ai::on_first_time()
   {
   auto aisettings = aiprocess::load_ai_settings();
-  aiprocess::warn("api_key {}", aisettings.api_key);
+  aiprocess::warn("api_key {}", aiprocess::obfuscate_text(aisettings.api_key));
   aiprocess::warn("cxx_rules {}", aisettings.cxx_rules);
   if(aisettings.api_key.empty())
     {
@@ -109,8 +109,6 @@ void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString 
 
   actions.addAction("process_with_ai", myAction);
   connect(myAction, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);
-
-  xmlFile = ":/ui/rcfile.ui.rc";
   }
 
 using namespace std::string_view_literals;
@@ -121,84 +119,82 @@ void kdevcxx_with_ai::on_process_with_ai()
     auto aisettings{aiprocess::load_ai_settings()};
     if(aisettings.api_key.empty())
       {
-      info_dialog dialog(
+      info_dialog dialog{
         "KDevCxx_With_Ai key setup still not done ..",
         "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n and enter Your API key before "
         "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting "
         "KDevelop"
-      );
+      };
       dialog.exec();
-      }
-    }
-  using namespace std::chrono_literals;
-  // qDebug() << "\nMy action was triggered!\n";
-  KTextEditor::View * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
-
-  if(nullptr != view && view->selection())
-    {
-    KTextEditor::Document * document = view->document();
-    if(nullptr == document)
-      {
-      qDebug() << "Invalid view->document";
       return;
       }
-    // document_read_only_t read_only_guard{*document};
-    info("Processing OpenAI request ...");
-    QProgressDialog progressDialog("Processing OpenAI Request...", "Cancel", 0, 100);
-    progressDialog.setWindowModality(Qt::WindowModal);
-    progressDialog.show();
-
-    QString selected_text = view->selectionText();
-
-    auto fn_call_openai
-      = [](std::string text) -> expected<aiprocess::model_response_text_t, aiprocess::process_with_ai_error>
-    { return aiprocess::process_with_ai(std::move(text)); };
-
-    auto async_result = std::async(std::launch::async, fn_call_openai, selected_text.toStdString());
-    debug("async to OpenAI executed ...");
-
-    std::this_thread::yield();
-
-    while(async_result.wait_for(50ms) != std::future_status::ready)
-      QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-    auto result = async_result.get();
-    debug("async to OpenAI done ...");
-    // auto result = process_with_ai(selected_text.toStdString());
-
-    if(result)
-      {
-      std::string cur_work_dir{};
-      if(auto path{get_view_file_path(*view)}; path.has_value())
-        cur_work_dir = std::move(path.value());
-      auto const & response{*result};
-      auto new_text = process_ai_response(response, std::move(cur_work_dir));
-      debug("Proocessed response Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
-
-      // make it read write to apply chnages
-      // read_only_guard.clear_state();
-      if(!new_text.empty())
-        {
-        document->replaceText(view->selectionRange(), QString::fromStdString(new_text));
-        debug("document->replaceText called ...");
-        }
-      }
-    else
-      {
-      aiprocess::li::error("Got error from async {}\n", result.error());
-      QWidget * parentWidget = view;                         // The parent widget, can be 'nullptr' if there's no parent
-      QString title = "Error during processing AI request";  // Title of the error dialog
-      KMessageBox::error(
-        parentWidget,
-        QString::fromStdString(stralgo::stl::merge(
-          "Error processing AI request "sv,
-          simple_enum::enum_name(result.error()),
-          "\ncheck detailed log at ~/.config/kdevcxx_with_ai/"sv,
-          settings.log_path
-        )),
-        title
-      );
-      }
     }
+
+  using namespace std::chrono_literals;
+  auto * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
+
+  if(!view || !view->selection()) [[unlikely]]
+    return;
+
+  auto * document = view->document();
+  if(!document) [[unlikely]]
+    {
+    warn("Invalid view->document");
+    return;
+    }
+
+  info("Processing OpenAI request ...");
+  QProgressDialog progressDialog{"Processing OpenAI Request...", "Cancel", 0, 100};
+  progressDialog.setWindowModality(Qt::WindowModal);
+  progressDialog.show();
+
+  QString selected_text = view->selectionText();
+
+  auto async_result = std::async(
+    std::launch::async,
+    [](QString text) -> expected<aiprocess::model_response_text_t, aiprocess::process_with_ai_error>
+    { return aiprocess::process_with_ai(text.toStdString()); },
+    selected_text
+  );
+
+  debug("async to OpenAI executed ...");
+  std::this_thread::yield();
+
+  while(async_result.wait_for(50ms) != std::future_status::ready)
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
+  auto result = async_result.get();
+  debug("async to OpenAI done ...");
+
+  if(!result)
+    {
+    aiprocess::li::error("Got error from async {}\n", result.error());
+    KMessageBox::error(
+      view,
+      QString::fromStdString(stralgo::stl::merge(
+        "Error processing AI request "sv,
+        simple_enum::enum_name(result.error()),
+        "\ncheck detailed log at ~/.config/kdevcxx_with_ai/"sv,
+        settings.log_path
+      )),
+      "Error during processing AI request"
+    );
+    return;
+    }
+
+  std::string cur_work_dir{};
+  if(auto path = get_view_file_path(*view); path.has_value())
+    cur_work_dir = std::move(path.value());
+
+  auto const & response = *result;
+  auto new_text = aiprocess::process_openai_json_response(response, std::move(cur_work_dir));
+  debug("Proocessed response Command Text: {}\nCode Text: {}\n", response.command, response.recived_text);
+
+  if(new_text.empty()) [[unlikely]]
+    return;
+
+  document->replaceText(view->selectionRange(), QString::fromStdString(new_text));
+  debug("document->replaceText called ...");
   }
 
 kdevcxx_with_ai::~kdevcxx_with_ai() {}
