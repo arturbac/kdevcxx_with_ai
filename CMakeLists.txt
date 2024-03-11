@@ -100,8 +100,11 @@ enable_testing()
 include(CTest)
 include(cmake/add_engine_ut.cmake)
 add_subdirectory(unittests)
+
+include(cmake/spdx_check.cmake)
+
 #----------------------------------------------------------------
-# kde junk below this like don not add any targets here to this shit thise KDE* cmake things brake normal code build
+# kde junk below this like don not add any targets here to this as those KDE* cmake things brake normal code build and modfiy compile flags
 
 find_package(ECM "5.68.0" CONFIG REQUIRED)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
@@ -117,11 +120,11 @@ find_package(KDevPlatform 5.2.40 REQUIRED)
 
 add_subdirectory(src)
 
-ecm_qt_install_logging_categories(
-    EXPORT CXX_WITH_GPT
-    FILE cxx_with_gpt.categories
-    DESTINATION "${KDE_INSTALL_LOGGINGCATEGORIESDIR}"
-)
+# ecm_qt_install_logging_categories(
+#     EXPORT CXX_WITH_GPT
+#     FILE cxx_with_gpt.categories
+#     DESTINATION "${KDE_INSTALL_LOGGINGCATEGORIESDIR}"
+# )
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

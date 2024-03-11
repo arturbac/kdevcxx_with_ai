@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include <aiprocess/clang_format.h>
 #include <aiprocess/change_current_dir.h>
 #include <aiprocess/log.h>

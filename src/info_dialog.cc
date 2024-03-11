@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include "info_dialog.h"
 #include <QVBoxLayout>
 #include <QLabel>

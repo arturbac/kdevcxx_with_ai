@@ -1,4 +1,8 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #pragma once
+
 #include <aiprocess/string_view.h>
 #include <aiprocess/concepts.h>
 #include <simple_enum/simple_enum.hpp>

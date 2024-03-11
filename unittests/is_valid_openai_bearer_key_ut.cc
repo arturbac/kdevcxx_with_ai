@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include <ai_processing.h>
 #include <boost/ut.hpp>
 #include <string>

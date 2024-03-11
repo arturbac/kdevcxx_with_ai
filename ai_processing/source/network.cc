@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #ifndef Q_MOC_RUN
 #include "network.h"
 #include <aiprocess/log.h>

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include <aiprocess/log.h>
 #include <aiprocess/app_settings.h>
 

@@ -1,4 +1,8 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #pragma once
+
 #include <string>
 #include <string_view>
 

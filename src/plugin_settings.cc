@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include <plugin_settings.h>
 
 plugin_settings::plugin_settings(QWidget * parent, QVariantList const & args) :
