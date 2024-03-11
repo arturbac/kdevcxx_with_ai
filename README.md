@@ -77,23 +77,8 @@ cmake --workflow --preset="clang-release"
 
 ### 4. Install the Plugin
 
-Determine the appropriate installation directory for your system. The following commands copy the built plugin to a common location for KDevelop plugins. Adjust the `DESTINATION` path as necessary for your system:
+Use provided install.sh script it will determine location of kdevplatform plugins and install plugin into that directory
 
-`Gentoo` example
-```bash
-SOURCE="build/clang-release/bin/kdevcxx_with_ai.so"
-DESTINATION="/usr/lib64/qt5/plugins/kdevplatform/513/kdevcxx_with_ai.so"
-
-# Copy the file to the destination using sudo
-sudo cp "$SOURCE" "$DESTINATION"
-
-# Verify the copy operation
-if [ $? -eq 0 ]; then
-    echo "Plugin installation successful."
-else
-    echo "Plugin installation failed."
-fi
-```
 
 ### 5. Configure OpenAI Key
 
