@@ -13,10 +13,10 @@
 #include <glaze/json/write.hpp>
 #include <glaze/json/read.hpp>
 #include <stralgo/strconv_numeric.h>
-#include <temp_auth_data.h>
 #include <cctype>
 #include <algorithm>
 #include <ranges>
+
 // 1. Text Completion (/v1/completions)
 //
 //     Purpose: Generate text completions or continuations based on a prompt.
@@ -67,6 +67,9 @@
 //
 //     Purpose: Identify potentially unsafe or problematic content within text.
 //     Engines: Specialized moderation models designed to flag content issues.
+namespace aiprocess
+  {
+
 static constexpr std::string_view command_start_delim = "[AI";
 static constexpr std::string_view command_end_delim = "]";
 
@@ -102,9 +105,8 @@ struct ai_chat_command_json
   };
 
 #endif
-using namespace aiprocess;
 
-static auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool
+auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool
   {
   // Example criteria: key should be 40 characters long and only contain alphanumeric characters
   constexpr size_t expected_length = 40;
@@ -291,6 +293,6 @@ auto process_ai_response(model_response_text_t const & data, std::string && clan
       parse_json_response(data.recived_text, std::move(clang_format_working_directory))
     );
   }
-
+  }  // namespace aiprocess
 #endif
 
