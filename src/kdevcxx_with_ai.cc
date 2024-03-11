@@ -66,20 +66,23 @@ kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDeve
   info("Settings loaded");
   QTimer::singleShot(200, this, &kdevcxx_with_ai::on_first_time);
   }
-  
+
 void kdevcxx_with_ai::on_first_time()
   {
   auto aisettings{aiprocess::load_ai_settings()};
-  if(!aisettings.api_key.empty())
+  if(aisettings.api_key.empty())
     {
     info_dialog dialog(
       "KDevCxx_With_Ai key setup",
       "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n and enter Your API key before "
-      "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting KDevelop\n" "Changes to kdevcxx_with_ai_ai_settings.json will take effect on every execution"
+      "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting "
+      "KDevelop\n"
+      "Changes to kdevcxx_with_ai_ai_settings.json will take effect on every execution"
     );
     dialog.exec();
     }
   }
+
 void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString & xmlFile, KActionCollection & actions)
   {
   QAction * myAction = new QAction(QIcon(":/icons/my_icon.png"), tr("&Process with AI"), this);
@@ -102,8 +105,8 @@ void kdevcxx_with_ai::on_process_with_ai()
       {
       info_dialog dialog(
         "KDevCxx_With_Ai key setup still not done ..",
-        "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json and enter Your API key before "
-        "calling any functions and adjust Your rules for AI. You can change them at any time without restarting "
+        "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n and enter Your API key before "
+        "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting "
         "KDevelop"
       );
       dialog.exec();
