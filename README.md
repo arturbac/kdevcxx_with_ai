@@ -73,7 +73,7 @@ Use provided install.sh script it will determine location of kdevplatform plugin
 
 ### 4. Configure OpenAI Key
 
-Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings located at ~/.config/kdevcxx_with_ai.
+Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings located at ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json.
 
 ## Usage
 
