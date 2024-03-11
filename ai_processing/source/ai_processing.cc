@@ -89,7 +89,7 @@ struct ai_command_json
   std::string model{"gpt-3.5-turbo-instruct"};
   std::string prompt;
   double temperature{0.5};
-  uint16_t max_tokens = 500;
+  uint16_t max_tokens = 4096;
   double top_p{1.0};
   double frequency_penalty{0.0};
   double presence_penalty{0.0};
@@ -101,7 +101,7 @@ struct ai_chat_command_json
   std::string model{"gpt-4-1106-preview"};
   std::array<message_t, 2> messages;
   double temperature{1.0};
-  uint16_t max_tokens = 500;
+  uint16_t max_tokens = 4096;
   double top_p{0.95};
   double frequency_penalty{0.0};
   double presence_penalty{0.0};
@@ -160,7 +160,7 @@ try
   size_t const aprox_tokens{code_text.size() / 2 + command_text.size()};
 #endif
   if(command.max_tokens < aprox_tokens)
-    command.max_tokens = uint16_t(aprox_tokens);
+    command.max_tokens = uint16_t(std::min<uint32_t>(4096u, uint32_t(aprox_tokens)));
   // Serialize the object to a JSON string
   std::string serialized = glz::write_json(command);
   if(serialized.empty())
