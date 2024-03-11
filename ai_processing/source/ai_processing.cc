@@ -129,21 +129,21 @@ try
   std::string result;
 
   aiprocess::ai_settings_t aisettings{aiprocess::load_ai_settings()};
-  // info("checking api key ..");
-  // if(!is_valid_openai_bearer_key(aisettings.api_key))
-  // return unexpected_error(invalid_api_key, "invalid key bailing out");
+  info("checking api key ..");
+  if(!is_valid_openai_bearer_key(aisettings.api_key))
+    return unexpected_error(invalid_api_key, "invalid key bailing out");
 
   auto start_pos = user_data.find(command_start_delim);
   auto end_pos = user_data.find(command_end_delim, start_pos);
 
-  if(start_pos == std::string::npos || end_pos == std::string::npos)
-    return unexpected{no_valid_command};
+  if(start_pos == std::string::npos || end_pos == std::string::npos) [[unlikely]]
+    return unexpected_error(no_valid_command, "AI command was not formatted coretly within [AI block]");
 
   std::string command_text
     = user_data.substr(start_pos + command_start_delim.length(), end_pos - (start_pos + command_start_delim.length()))
         .erase(0, 1);
 
-  if(command_text.empty())
+  if(command_text.empty()) [[unlikely]]
     return unexpected_error(no_valid_command, "command_text is empty nothing to do ..");
 
   std::string code_text = user_data.substr(end_pos + command_end_delim.length());
@@ -163,7 +163,7 @@ try
     command.max_tokens = uint16_t(std::min<uint32_t>(4096u, uint32_t(aprox_tokens)));
   // Serialize the object to a JSON string
   std::string serialized = glz::write_json(command);
-  if(serialized.empty())
+  if(serialized.empty()) [[unlikely]]
     return unexpected_error(
       json_serialization_error,
       "json serialization failed of command.. system {} user {}",
@@ -191,9 +191,7 @@ try
     };
     }
   else
-    {
     return unexpected_error(other_error, "AI: send_text_to_gpt returned error {}", res.error());
-    }
   }
 catch(...)
   {
@@ -203,7 +201,7 @@ catch(...)
 using namespace std::string_view_literals;
 static constexpr glz::opts default_json_parse_opts{.error_on_unknown_keys = false, .skip_null_members = true};
 
-auto parse_json_response(std::string_view response_json_data, std::string && clang_format_working_directory)
+auto parse_json_choices(std::string_view response_json_data, std::string && clang_format_working_directory)
   -> std::string
   {
   model_response_t mr;
@@ -211,7 +209,6 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
   auto result{glz::read<glz::set_json<default_json_parse_opts>()>(mr, std::string{response_json_data}, ctx)};
   if(result.ec == glz::error_code::none && !mr.id.empty())  // if id is empty en it is invalid json for sure
     {
-    // std::size_t choice_nr{};
     auto fn_format_choice = [&](std::string && str, model_choice_data_t const & mcd) -> std::string
     {
 #ifndef ENABLE_CHAT_COMPLETIONS
@@ -224,7 +221,6 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
 #else
       auto unformatted{stralgo::stl::compose(
         // clang-format off
-        // "\t // ["sv, choice_nr, "]\n"sv,
         "\t"sv, aiprocess::remove_pattern(aiprocess::remove_pattern(mcd.message.content, "```cpp\n"sv), "```"sv), '\n'
         // clang-format on
       )};
@@ -243,10 +239,7 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
     return stralgo::stl::compose(
       // clang-format off
       "/*"sv,
-      " id : "sv, mr.id, '\n',
-      " object : "sv, mr.object, '\n',
-      " created : "sv, mr.created, '\n',
-      " model : "sv, mr.model, '\n',
+      " id : "sv, mr.id, " object : "sv, mr.object, " created : "sv, mr.created, " model : "sv, mr.model, '\n',
       " choices :\n"sv,
       "*/"sv,
       "// AI CODE BLOCK BEGIN\n"sv,
@@ -267,33 +260,28 @@ auto parse_json_response(std::string_view response_json_data, std::string && cla
     }
   }
 
-auto process_ai_response(model_response_text_t const & data, std::string && clang_format_working_directory)
+auto process_openai_json_response(model_response_text_t const & data, std::string && clang_format_working_directory)
   -> std::string
   {
   if(data.send_text.empty())
-    return fmt::format(
-      R"(
-// Command send {}
-#if 1
-{}
-#endif
-)",
-      data.command,
-      parse_json_response(data.recived_text, std::move(clang_format_working_directory))
+    return stralgo::stl::merge(
+      // clang-format off
+      "#if 1\n"sv
+      "[AI"sv, data.command,"]\n"sv,
+      parse_json_choices(data.recived_text, std::move(clang_format_working_directory)),
+      "#endif\n"sv
+      // clang-format on
     );
   else
-    return fmt::format(
-      R"(
-// Command send {}
-#if 0
-{}
-#else
-{}
-#endif
-)",
-      data.command,
+    return stralgo::stl::merge(
+      // clang-format off
+      "#if 1\n"sv
+      "[AI"sv, data.command,"]\n"sv,
+      parse_json_choices(data.recived_text, std::move(clang_format_working_directory)),
+      "#else\n"sv,
       data.send_text,
-      parse_json_response(data.recived_text, std::move(clang_format_working_directory))
+      "#endif\n"sv
+      // clang-format on
     );
   }
   }  // namespace aiprocess

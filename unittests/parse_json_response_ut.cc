@@ -116,7 +116,7 @@ static suite<"model_response_tests"> model_response_tests = []
             ]
         })";
 
-    auto pr{aiprocess::parse_json_response(json_data)};
+    auto pr{aiprocess::parse_json_choices(json_data)};
 
     expect(aiprocess::contains(pr, "id : cmpl-90eNRqqPnxj7Yh9hWftWCufTH9wMP"));
     expect(aiprocess::contains(pr, "object : text_completion"));

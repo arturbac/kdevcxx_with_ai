@@ -56,10 +56,10 @@ struct model_response_text_t
 
 auto process_with_ai(std::string && user_data) -> expected<model_response_text_t, process_with_ai_error>;
 
-auto parse_json_response(
+auto parse_json_choices(
   std::string_view response_json_data, std::string && clang_format_working_directory = std::string{}
 ) -> std::string;
-auto process_ai_response(model_response_text_t const & data, std::string && clang_format_working_directory)
+auto process_openai_json_response(model_response_text_t const & data, std::string && clang_format_working_directory)
   -> std::string;
 
 struct message_t
