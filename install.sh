@@ -20,13 +20,6 @@ if [[ "$CONFIRM" != "Y" && "$CONFIRM" != "y" ]]; then
     exit 0
 fi
 
-echo "Are you absolutely sure? What if I wipe out your system in sudo mode? [Y/N]"
-read -r CONFIRM_AGAIN
-if [[ "$CONFIRM_AGAIN" != "Y" && "$CONFIRM_AGAIN" != "y" ]]; then
-    echo "Operation cancelled."
-    exit 0
-fi
-
 # Copy the file to the destination using sudo
 sudo cp "$SOURCE" "$DESTINATION"
 
