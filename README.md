@@ -96,7 +96,7 @@ To use the AI functionality within the editor, follow these steps:
 
 Command
 
-Implmenting unit tests
+Implementing unit tests example. note that it takes into effect my system rules specifying explicitly to use bost-ext/ut and You can change this in settings
 
 ![Bez nazwy2](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/dfbe7bbe-ccca-4f3d-b577-52a87c2480fe)
 
