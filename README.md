@@ -96,6 +96,11 @@ To use the AI functionality within the editor, follow these steps:
 
 Command
 
+Implmenting unit tests
+
+![Bez nazwy2](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/dfbe7bbe-ccca-4f3d-b577-52a87c2480fe)
+
+
 ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/31e7bcb6-caf1-4a0e-9278-d4560c9266f6)
 
 After execution
@@ -109,6 +114,7 @@ Or asking for help with explanations
 or example refactoring of very old code
 
 ![Bez nazwy](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/f7128298-bcaf-4772-a929-9f94b23579c1)
+
 
 
 
