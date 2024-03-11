@@ -106,6 +106,12 @@ Or asking for help with explanations
 
 ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/0f818de6-9146-453d-beed-b66832c9e8ae)
 
+or example refactoring of very old code
+
+![Bez nazwy](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/f7128298-bcaf-4772-a929-9f94b23579c1)
+
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
