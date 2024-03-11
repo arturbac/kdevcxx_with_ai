@@ -17,7 +17,7 @@ struct text_test
 
 struct choices
   {
-  std::vector<model_choice_data_t> choices;
+  std::vector<aiprocess::model_choice_data_t> choices;
   };
 
 static suite<"glaze_tests"> glaze_tests = []
@@ -50,7 +50,7 @@ static suite<"glaze_tests"> glaze_tests = []
       "finish_reason": "stop"
     }
 )";
-    auto s = glz::read_json<model_choice_data_t>(source_text);
+    auto s = glz::read_json<aiprocess::model_choice_data_t>(source_text);
     expect(fatal(s.has_value())) << [&s]() { return s.error().includer_error; };
   };
   "test model_choice_data array json"_test = []
@@ -93,7 +93,7 @@ static suite<"glaze_tests"> glaze_tests = []
     "total_tokens": 209
   }
 })";
-    auto s = glz::read_json<model_response_t>(source_text);
+    auto s = glz::read_json<aiprocess::model_response_t>(source_text);
     expect(fatal(s.has_value())) << [&s]() { return s.error().includer_error; };
   };
 };
@@ -114,7 +114,7 @@ static suite<"model_response_tests"> model_response_tests = []
             ]
         })";
 
-    auto pr{parse_json_response(json_data)};
+    auto pr{aiprocess::parse_json_response(json_data)};
 
     expect(aiprocess::contains(pr, "id : cmpl-90eNRqqPnxj7Yh9hWftWCufTH9wMP"));
     expect(aiprocess::contains(pr, "object : text_completion"));

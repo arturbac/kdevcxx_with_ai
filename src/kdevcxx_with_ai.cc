@@ -132,8 +132,9 @@ void kdevcxx_with_ai::on_process_with_ai()
 
     QString selected_text = view->selectionText();
 
-    auto fn_call_openai = [](std::string text) -> expected<model_response_text_t, process_with_ai_error>
-    { return process_with_ai(std::move(text)); };
+    auto fn_call_openai
+      = [](std::string text) -> expected<aiprocess::model_response_text_t, aiprocess::process_with_ai_error>
+    { return aiprocess::process_with_ai(std::move(text)); };
 
     auto async_result = std::async(std::launch::async, fn_call_openai, selected_text.toStdString());
     debug("async to OpenAI executed ...");

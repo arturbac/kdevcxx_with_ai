@@ -13,4 +13,4 @@ add_engine_ut(parse_json_response_ut.cc)
 add_engine_ut(clang_format_ut.cc)
 add_engine_ut(clean_string_ut.cc)
 add_engine_ut(network_ut.cc)
-
+add_engine_ut(is_valid_openai_bearer_key_ut.cc)

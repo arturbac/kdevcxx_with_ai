@@ -1,5 +1,4 @@
 #include <network.h>
-#include <temp_auth_data.h>
 #include <boost/ut.hpp>
 #include <string_view>
 

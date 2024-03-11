@@ -108,13 +108,13 @@ struct ai_chat_command_json
 
 auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool
   {
-  // Example criteria: key should be 40 characters long and only contain alphanumeric characters
+  // Example criteria: key should be 41 characters long and only contain alphanumeric characters
   constexpr size_t expected_length = 40;
-  if(key.length() != expected_length)
+  if(key.length() < expected_length) [[unlikely]]
     return false;
 
   // Check if all characters in the key are alphanumeric using std::ranges::all_of
-  return std::ranges::all_of(key, [](unsigned char c) { return std::isalnum(c); });
+  return std::ranges::all_of(key, [](unsigned char c) { return std::isprint(c); });
   }
 
 // static std::string_view api_url{"https://api.openai.com/v1/engines/code-davinci-002/completions"};

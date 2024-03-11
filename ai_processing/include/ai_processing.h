@@ -10,6 +10,8 @@
 
 #define ENABLE_CHAT_COMPLETIONS
 
+namespace aiprocess
+  {
 // https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 // Model endpoint compatibility
 // Endpoint	Latest models
@@ -98,3 +100,6 @@ struct model_response_t
   std::vector<model_choice_data_t> choices;  ///< Array of completion choices provided by the model.
   model_usage_t usage;                       ///< Information about the usage of the model.
   };
+
+auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool;
+  }  // namespace aiprocess
