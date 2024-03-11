@@ -1,9 +1,0 @@
-{
-    "KPlugin": {
-        "Description": "AI integration plugin",
-        "Id": "cxx_with_gpt",
-        "Name": "cxx_with_gpt"
-    },
-    "X-KDevelop-Category": "Global",
-    "X-KDevelop-Mode": "GUI"
-}

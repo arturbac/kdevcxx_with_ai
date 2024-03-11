@@ -20,14 +20,14 @@
 #include "ui_cxx_with_gpt_settings.h"  // Include the UI header
 #include <memory>
 
-class cxx_with_gpt : public KDevelop::IPlugin
+class kdevcxx_with_ai : public KDevelop::IPlugin
   {
   Q_OBJECT
   aiprocess::app_settings_t settings;
 
 public:
-  cxx_with_gpt(QObject * parent, QVariantList const & args);
-  ~cxx_with_gpt() override;
+  kdevcxx_with_ai(QObject * parent, QVariantList const & args);
+  ~kdevcxx_with_ai() override;
 
   void
     createActionsForMainWindow(Sublime::MainWindow * window, QString & xmlFile, KActionCollection & actions) override;
@@ -38,7 +38,8 @@ protected slots:
 private slots:
 
   void on_process_with_ai();
-
+  void on_first_time();
+  
 private:
   void setupConfigurationInterface();
   void loadSettings();

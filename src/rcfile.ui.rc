@@ -1,9 +1,0 @@
-
-<!DOCTYPE kpartgui SYSTEM "kpartgui.dtd">
-<kpartgui name="cxx_with_gpt" version="1">
-    <MenuBar>
-        <Menu name="tools" >
-            <Action name="process_with_ai"/>
-        </Menu>
-    </MenuBar>
-</kpartgui>

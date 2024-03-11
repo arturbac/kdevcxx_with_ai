@@ -1,4 +1,4 @@
-#include "cxx_with_gpt.h"
+#include "kdevcxx_with_ai.h"
 
 // #include <debug.h>
 
@@ -14,6 +14,7 @@
 #include <KSharedConfig>
 #include <kcoreconfigskeleton.h>
 #include <QProgressDialog>
+#include <QTimer>
 
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
@@ -44,49 +45,42 @@ static auto get_view_file_path(KTextEditor::View const & view
 try
   {
   if(!view.document()) [[unlikely]]
-    return unexpected(get_view_file_path_error::no_document);
+    return aiprocess::unexpected_error(get_view_file_path_error::no_document, "Document was not saved yet");
 
   auto document = view.document();
-  std::string filePath = document->url().toLocalFile().toStdString();
-
-  return filePath;
+  return document->url().toLocalFile().toStdString();
   }
 catch(...)
   {
-  return unexpected{get_view_file_path_error::unhandled_exception};
+  return aiprocess::unexpected_error(
+    get_view_file_path_error::unhandled_exception, "error getting path for current view document"
+  );
   }
-K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "cxx_with_gpt.json", registerPlugin<cxx_with_gpt>();)
+K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "kdevcxx_with_ai.json", registerPlugin<kdevcxx_with_ai>();)
 
-cxx_with_gpt::cxx_with_gpt(QObject * parent, QVariantList const &) : KDevelop::IPlugin("cxx_with_gpt", parent)
+kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDevelop::IPlugin("kdevcxx_with_ai", parent)
   {
   log(aiprocess::level::info, "Starting plugin KDevCxx_With_Ai");
   settings = aiprocess::load_app_settings();
   aiprocess::setup_loggers(settings);
   info("Settings loaded");
+  QTimer::singleShot(200, this, &kdevcxx_with_ai::on_first_time);
+  }
+  
+void kdevcxx_with_ai::on_first_time()
+  {
   auto aisettings{aiprocess::load_ai_settings()};
-  if(aisettings.api_key.empty())
+  if(!aisettings.api_key.empty())
     {
     info_dialog dialog(
       "KDevCxx_With_Ai key setup",
-      "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json and enter Your API key before "
-      "calling any functions and adjust Your rules for AI. You can change them at any time without restarting KDevelop"
+      "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n and enter Your API key before "
+      "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting KDevelop\n" "Changes to kdevcxx_with_ai_ai_settings.json will take effect on every execution"
     );
     dialog.exec();
     }
-  // qDebug() << "cxx_with_gpt::cxx_with_gpt\n";
-  //   setupConfigurationInterface();
-  //   auto editor = KTextEditor::Editor::instance();
-  //   connect(editor, &KTextEditor::Editor::documentCreated, this, &cxx_with_gpt::attachActionsToDocument);
-  //
-  //   QAction* myAction = new QAction(i18n("Process with AI"), this);
-  //   myAction->setIcon(QIcon::fromTheme("document-new")); // Example icon
-  //   myAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_M)); // Example shortcut
-  //   actionCollection()->addAction("process_with_ai", myAction);
-  //
-  //   connect(myAction, &QAction::triggered, this, &cxx_with_gpt::onMyActionTriggered);
   }
-
-void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & xmlFile, KActionCollection & actions)
+void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString & xmlFile, KActionCollection & actions)
   {
   QAction * myAction = new QAction(QIcon(":/icons/my_icon.png"), tr("&Process with AI"), this);
   myAction->setToolTip(tr("Do something interesting with AI"));
@@ -95,12 +89,12 @@ void cxx_with_gpt::createActionsForMainWindow(Sublime::MainWindow *, QString & x
   info("Key for AI binded to {}", settings.activation_keys);
 
   actions.addAction("process_with_ai", myAction);
-  connect(myAction, &QAction::triggered, this, &cxx_with_gpt::on_process_with_ai);
+  connect(myAction, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);
 
   xmlFile = ":/ui/rcfile.ui.rc";
   }
 
-void cxx_with_gpt::on_process_with_ai()
+void kdevcxx_with_ai::on_process_with_ai()
   {
     {
     auto aisettings{aiprocess::load_ai_settings()};
@@ -173,9 +167,9 @@ void cxx_with_gpt::on_process_with_ai()
     }
   }
 
-cxx_with_gpt::~cxx_with_gpt() {}
+kdevcxx_with_ai::~kdevcxx_with_ai() {}
 
-void cxx_with_gpt::setupConfigurationInterface()
+void kdevcxx_with_ai::setupConfigurationInterface()
   {
   // qDebug() << "\ncxx_with_gpt::setupConfigurationInterface\n";
   // Check if the dialog already exists to avoid duplicates
@@ -206,14 +200,14 @@ void cxx_with_gpt::setupConfigurationInterface()
   loadSettings();
   }
 
-void cxx_with_gpt::loadSettings()
+void kdevcxx_with_ai::loadSettings()
   {
   KConfigGroup config(KSharedConfig::openConfig(), "cxx_with_gpt");
   ui.lineEditAiKey->setText(config.readEntry("ai_key", ""));
   ui.lineEditAiEndpoint->setText(config.readEntry("ai_endpoint", ""));
   }
 
-void cxx_with_gpt::saveSettings()
+void kdevcxx_with_ai::saveSettings()
   {
   qDebug() << "cxx_with_gpt::saveSettings\n";
 
@@ -223,11 +217,11 @@ void cxx_with_gpt::saveSettings()
   config.sync();  // Ensure changes are written to disk
   }
 
-void cxx_with_gpt::applySettings()
+void kdevcxx_with_ai::applySettings()
   {
   saveSettings();
   // Here you might also want to re-initialize anything that uses these settings
   }
 
-#include "cxx_with_gpt.moc"
-#include "moc_cxx_with_gpt.cpp"
+#include "kdevcxx_with_ai.moc"
+#include "moc_kdevcxx_with_ai.cpp"

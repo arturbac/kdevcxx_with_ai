@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Description": "AI integration plugin",
+        "Id": "kdevcxx_with_ai",
+        "Name": "kdevcxx_with_ai",
+        "ServiceTypes": [ "KCModule" ],
+        "X-KDE-PluginInfo-Author": "Artur Bać",
+        "X-KDE-PluginInfo-Email": "arturbac.ab@gmail.com",
+        "X-KDE-PluginInfo-License": "MIT",
+        "X-KDE-PluginInfo-Version": "0.1.1",
+        "X-KDE-PluginInfo-Name": "KDevCxxWithAi",
+        "X-KDE-PluginInfo-Category": "Development",
+        "X-KDE-PluginInfo-Website": "https://github.com/arturbac/",
+        "X-KDE-PluginInfo-EnabledByDefault": "true",
+        "X-KDE-ServiceTypes": ["KDevelop/SettingsDialog/Plugin"],
+        "X-KDE-ParentComponents": ["kdevcxx_with_ai"]
+    },
+    "X-KDevelop-Category": "Global",
+    "X-KDevelop-Mode": "GUI"
+}
