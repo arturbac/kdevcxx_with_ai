@@ -18,5 +18,5 @@ plugin_settings::plugin_settings(QWidget * parent, QVariantList const & args) :
   );
   }
 
-#include "plugin_settings.moc"
-#include "moc_plugin_settings.cpp"
+// #include "plugin_settings.moc"
+// #include "moc_plugin_settings.cpp"

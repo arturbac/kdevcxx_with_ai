@@ -1,8 +1,6 @@
 #ifndef CXX_WITH_GPT_H
 #define CXX_WITH_GPT_H
 
-// #include "cxx_with_gpt_settings.h"
-
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
 #endif
@@ -17,7 +15,6 @@
 #include <KLocalizedString>
 #include <KConfigDialog>
 #include <QObject>
-#include "ui_cxx_with_gpt_settings.h"  // Include the UI header
 #include <memory>
 
 class kdevcxx_with_ai : public KDevelop::IPlugin
@@ -32,21 +29,12 @@ public:
   void
     createActionsForMainWindow(Sublime::MainWindow * window, QString & xmlFile, KActionCollection & actions) override;
 
-protected slots:
-  void applySettings();
-
 private slots:
 
   void on_process_with_ai();
   void on_first_time();
-  
-private:
-  void setupConfigurationInterface();
-  void loadSettings();
-  void saveSettings();
 
-  Ui::CxxWithGptSettings ui;  // UI from the designer
-  std::unique_ptr<QWidget> settingsWidget;
+private:
   };
 
 #endif  // CXX_WITH_GPT_H

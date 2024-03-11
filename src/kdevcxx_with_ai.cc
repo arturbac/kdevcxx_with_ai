@@ -6,7 +6,8 @@
 #include <info_dialog.h>
 #include <kpluginloader.h>
 #include <kactioncollection.h>
-#include <QAction>
+#include <qaction.h>
+#include <qapplication.h>
 #include <KLocalizedString>
 #include <ktexteditor/application.h>
 #include <ktexteditor/mainwindow.h>
@@ -22,6 +23,7 @@
 #include <ai_processing.h>
 #include <fmt/core.h>
 #include <simple_enum/simple_enum.hpp>
+#include <aiprocess/log.h>
 #include <string>
 #include <future>
 #include <thread>
@@ -67,17 +69,26 @@ kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDeve
   QTimer::singleShot(200, this, &kdevcxx_with_ai::on_first_time);
   }
 
+/**
+ * @brief Handles first-time initialization for the AI settings.
+ *
+ * This function is responsible for checking whether the AI settings have
+ * been properly set up with an API key. If the API key is missing, it prompts
+ * the user to enter the API key by displaying an information dialog.
+ */
 void kdevcxx_with_ai::on_first_time()
   {
-  auto aisettings{aiprocess::load_ai_settings()};
+  auto aisettings = aiprocess::load_ai_settings();
+  aiprocess::warn("api_key {}", aisettings.api_key);
+  aiprocess::warn("cxx_rules {}", aisettings.cxx_rules);
   if(aisettings.api_key.empty())
     {
     info_dialog dialog(
       "KDevCxx_With_Ai key setup",
-      "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n and enter Your API key before "
-      "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting "
-      "KDevelop\n"
-      "Changes to kdevcxx_with_ai_ai_settings.json will take effect on every execution"
+      "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n"
+      "and enter your API key before calling any functions and adjust your rules for AI.\n"
+      "You can change them at any time without restarting KDevelop.\n"
+      "Changes to kdevcxx_with_ai_ai_settings.json will take effect on every execution."
     );
     dialog.exec();
     }
@@ -172,60 +183,6 @@ void kdevcxx_with_ai::on_process_with_ai()
   }
 
 kdevcxx_with_ai::~kdevcxx_with_ai() {}
-
-void kdevcxx_with_ai::setupConfigurationInterface()
-  {
-  // qDebug() << "\ncxx_with_gpt::setupConfigurationInterface\n";
-  // Check if the dialog already exists to avoid duplicates
-  if(KConfigDialog::exists("cxx_with_gpt_settings"))
-    return;
-
-  // auto settings = CxxWithGpt::Settings::self();
-
-  // Now use 'settings' to access AiKey and AiEndpoint
-  // For example, to load and save these settings in your UI
-
-  // Create the settings widget from the UI file
-  settingsWidget = std::make_unique<QWidget>();
-  ui.setupUi(settingsWidget.get());
-
-  // auto settings = Settings::self();
-  // ui.lineEditAiKey->setText(settings->aiKey());
-  // ui.lineEditAiEndpoint->setText(settings->aiEndpoint());
-
-  ui.lineEditAiKey->setText("");
-  ui.lineEditAiEndpoint->setText("https://api.openai.com/v1/engines/code-davinci-002/completions");
-  //
-  KConfigGroup config(KSharedConfig::openConfig(), "cxx_with_gpt");
-  //   // Register the settings widget in KDevelop's configuration dialog
-  //   auto configPage = config->addPage(settingsWidget, i18n("AI Settings"), QStringLiteral("settings-configure"));
-  //   connect(configPage, &KCoreConfigSkeleton::configCommitted, this, &cxx_with_gpt::applySettings);
-
-  loadSettings();
-  }
-
-void kdevcxx_with_ai::loadSettings()
-  {
-  KConfigGroup config(KSharedConfig::openConfig(), "cxx_with_gpt");
-  ui.lineEditAiKey->setText(config.readEntry("ai_key", ""));
-  ui.lineEditAiEndpoint->setText(config.readEntry("ai_endpoint", ""));
-  }
-
-void kdevcxx_with_ai::saveSettings()
-  {
-  qDebug() << "cxx_with_gpt::saveSettings\n";
-
-  KConfigGroup config(KSharedConfig::openConfig(), "cxx_with_gpt");
-  config.writeEntry("ai_key", ui.lineEditAiKey->text());
-  config.writeEntry("ai_endpoint", ui.lineEditAiEndpoint->text());
-  config.sync();  // Ensure changes are written to disk
-  }
-
-void kdevcxx_with_ai::applySettings()
-  {
-  saveSettings();
-  // Here you might also want to re-initialize anything that uses these settings
-  }
 
 #include "kdevcxx_with_ai.moc"
 #include "moc_kdevcxx_with_ai.cpp"
