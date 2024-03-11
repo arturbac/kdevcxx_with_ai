@@ -97,6 +97,14 @@ To use the AI functionality within the editor, follow these steps:
 Command
 
 Implementing unit tests example. note that it takes into effect my system rules specifying explicitly to use bost-ext/ut and You can change this in settings
+```json
+{
+   "api_key": "******************",
+   "cxx_rules": "You are great c++23 coder,... if implementing  unit tests You use boost-ext/ut ...",
+   "version": 1
+}
+
+```
 
 ![Bez nazwy2](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/dfbe7bbe-ccca-4f3d-b577-52a87c2480fe)
 
