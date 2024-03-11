@@ -6,6 +6,7 @@ set(kdevcxx_with_ai_SRCS
     kdevcxx_with_ai.cc
     info_dialog.cc
     plugin_settings.cc
+    markdown_view.cc
     ${CXX_WITH_GPT_UI_HEADERS}
 )
 
@@ -16,6 +17,8 @@ kdevplatform_add_plugin(kdevcxx_with_ai
 target_link_libraries(kdevcxx_with_ai
     KDev::Interfaces
     ai_processing::core
+    Qt5::Widgets
+    Qt5::WebEngineWidgets
     ${BASIC_LINK_FLAGS}
 )
 target_compile_options( kdevcxx_with_ai PRIVATE "-fexceptions")

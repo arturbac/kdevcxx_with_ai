@@ -117,6 +117,16 @@ include(FeatureSummary)
 
 find_package(KDevPlatform 5.2.40 REQUIRED)
 
+# Find the required Qt and KDE modules
+find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+find_package(KF5CoreAddons REQUIRED)
+find_package(KF5WidgetsAddons REQUIRED)
+find_package(KF5I18n REQUIRED)
+
+# Instruct CMake to run moc, uic, and rcc automatically
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 add_subdirectory(src)
 
