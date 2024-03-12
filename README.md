@@ -90,7 +90,10 @@ To use the AI functionality within the editor, follow these steps:
 
 2. Highlight the request and the target code.
 
-3. Press `Ctrl + 1` to activate the AI processing of selected request and code.
+3. Press `Ctrl + 1` to activate the AI processing of selected request and code. With 0.1.3 there is context menu available Process With OpenAI
+
+ ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/164e000f-014e-4618-8243-f78e4a627f99)
+
 
 ## Example use 
 
