@@ -90,14 +90,15 @@ To use the AI functionality within the editor, follow these steps:
 
 2. Highlight the request and the target code.
 
-3. Press `Ctrl + 1` to activate the AI processing of selected request and code. With 0.1.3 there is context menu available Process With OpenAI
+3. Press `Ctrl + 1` to activate the AI processing of selected request and code. With 0.1.3 there is context menu available `Process With OpenAI`
 
- ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/164e000f-014e-4618-8243-f78e4a627f99)
+
 
 
 ## Example use 
 
-Command
+![Bez nazwy](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/b30c6e56-09d7-4cec-b50b-7d1d4d9b1b2a)
+
 
 Implementing unit tests example. note that it takes into effect my system rules specifying explicitly to use bost-ext/ut and You can change this in settings
 ```json
@@ -110,13 +111,6 @@ Implementing unit tests example. note that it takes into effect my system rules 
 ```
 
 ![Bez nazwy2](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/dfbe7bbe-ccca-4f3d-b577-52a87c2480fe)
-
-
-![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/31e7bcb6-caf1-4a0e-9278-d4560c9266f6)
-
-After execution
-
-![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/4565cb0f-9ad2-46e9-bda8-93ff633af673)
 
 Or asking for help with explanations
 
