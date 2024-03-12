@@ -33,12 +33,13 @@ namespace aiprocess
 // /v1/moderations	text-moderation-stable, text-moderation-latest
 // /v1/images/generations	dall-e-2, dall-e-3
 
+/// @brief Enumeration for \ref process_with_ai errors.
 enum struct process_with_ai_error
   {
-  other_error,
-  invalid_api_key,
-  json_serialization_error,
-  no_valid_command
+  other_error,               ///< An unspecified error.
+  invalid_api_key,           ///< The provided API key is invalid.
+  json_serialization_error,  ///< Error occurred during JSON serialization.
+  no_valid_command           ///< No valid command was found in the request.
   };
 
 consteval auto adl_enum_bounds(process_with_ai_error)
