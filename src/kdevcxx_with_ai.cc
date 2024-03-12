@@ -202,10 +202,10 @@ auto kdevcxx_with_ai::contextMenuExtension(KDevelop::Context * context, QWidget 
   -> KDevelop::ContextMenuExtension
   {
   KDevelop::ContextMenuExtension extension;
-
   // Example context check (you'll need to replace this with actual logic based on your context)
   if(context->type() == KDevelop::Context::EditorContext)
     {
+    info("Context menu registered for AI");
     // This is just an example; customize it based on your plugin's functionality
     QAction * process_with_ai_action = new QAction(QIcon::fromTheme("system-run"), tr("Process with OpenAI"), parent);
     connect(process_with_ai_action, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);

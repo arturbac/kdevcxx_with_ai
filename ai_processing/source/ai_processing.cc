@@ -122,6 +122,7 @@ auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool
 
 // static std::string_view api_url{"https://api.openai.com/v1/engines/code-davinci-002/completions"};
 // https://platform.openai.com/docs/deprecations
+
 auto process_with_ai(std::string && user_data) -> expected<model_response_text_t, process_with_ai_error>
 try
   {
@@ -207,7 +208,7 @@ auto parse_json_choices(std::string_view response_json_data, std::string && clan
   model_response_t mr;
   glz::context ctx{};
   auto result{glz::read<glz::set_json<default_json_parse_opts>()>(mr, std::string{response_json_data}, ctx)};
-  if(result.ec == glz::error_code::none && !mr.id.empty())  // if id is empty en it is invalid json for sure
+  if(result.ec == glz::error_code::none && !mr.id.empty())  // if id is empty then it is invalid json for sure
     {
     auto fn_format_choice = [&](std::string && str, model_choice_data_t const & mcd) -> std::string
     {
