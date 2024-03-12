@@ -10,6 +10,7 @@
 #include <aiprocess/app_settings.h>
 #endif
 #include <kdevplatform/interfaces/iplugin.h>
+#include <kdevplatform/interfaces/contextmenuextension.h>
 #include <ktexteditor/document.h>
 #include <ktexteditor/editor.h>
 #include <ktexteditor/view.h>
@@ -29,8 +30,10 @@ public:
   kdevcxx_with_ai(QObject * parent, QVariantList const & args);
   ~kdevcxx_with_ai() override;
 
-  void
-    createActionsForMainWindow(Sublime::MainWindow * window, QString & xmlFile, KActionCollection & actions) override;
+  auto contextMenuExtension(KDevelop::Context * context, QWidget * parent) -> KDevelop::ContextMenuExtension override;
+
+  auto createActionsForMainWindow(Sublime::MainWindow * window, QString & xmlFile, KActionCollection & actions)
+    -> void override;
 
 private slots:
 
