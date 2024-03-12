@@ -1,7 +1,7 @@
 
 # KDevCXX with AI
 
-KDevCXX with AI is an innovative extension for the KDevelop IDE, focusing on integrating AI-powered features specifically designed to enhance C++ development. This project leverages the latest advancements in machine learning and natural language processing to provide KDevelop users with intelligent coding assistance, including code completion, documentation lookup, and advanced code analysis.
+KDevCXX with AI is an innovative extension for the KDevelop IDE and soon also for Kate editor, focusing on integrating AI-powered features specifically designed to enhance C++ development. This project leverages the latest advancements in machine learning and natural language processing to provide KDevelop users with intelligent coding assistance, including code completion, documentation lookup, and advanced code analysis.
 
 ## Features
 
