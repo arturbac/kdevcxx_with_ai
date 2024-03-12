@@ -10,11 +10,13 @@
 #include "expectd.h"
 #include <optional>
 #include <simple_enum/simple_enum.hpp>
+#include <small_vectors/small_vector.h>
 
 #define ENABLE_CHAT_COMPLETIONS
 
 namespace aiprocess
   {
+namespace sv = small_vectors;
 // https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
 // Model endpoint compatibility
 // Endpoint	Latest models
@@ -55,18 +57,53 @@ struct model_response_text_t
   std::string recived_text;
   };
 
+/**
+ * @brief Prepares and sends a request to OpenAI using user input.
+ *
+ * @param user_data A string representing data provided by the user.
+ * @return An expected object containing either the model's response text
+ *         or an error code with an associated error enumeration.
+ *
+ * @details This function takes the user input, ensures it contains a valid
+ *          AI command, and sends a request to OpenAI's API. It then
+ *          processes the API response, returning either the result or
+ *          an error.
+ * @ref user_data
+ */
 auto process_with_ai(std::string && user_data) -> expected<model_response_text_t, process_with_ai_error>;
 
+/**
+ * @brief Processes choices from OpenAI's JSON response
+ *
+ * @param response_json_data The JSON string choices from json containing the response from OpenAI.
+ * @param clang_format_working_directory An optional working directory to run clang-format in.
+ * @return std::string The processed choice text.
+ */
+[[nodiscard]]
 auto parse_json_choices(
   std::string_view response_json_data, std::string && clang_format_working_directory = std::string{}
 ) -> std::string;
+
+// AI CODE BLOCK BEGIN
+/**
+ * Processes the response received from OpenAI.
+ *
+ * @param data The JSON response text from OpenAI as a model-specific type.
+ * @param clang_format_working_directory Temporary working directory for clang-format to get context of .clang-format.
+ * @return A processed string based on OpenAI's response.
+ */
+[[nodiscard]]
 auto process_openai_json_response(model_response_text_t const & data, std::string && clang_format_working_directory)
   -> std::string;
 
+/**
+ * @struct message_t
+ * @brief This structure represents a message with a role and content.
+ */
 struct message_t
   {
-  std::string role;
-  std::string content;
+  std::string role;     ///< Role of the sender of the message.
+  std::string content;  ///< Actual content of the message.
   };
 
 struct model_choice_data_t
@@ -97,12 +134,13 @@ struct model_usage_t
  */
 struct model_response_t
   {
-  std::string id;                            ///< Unique identifier for the request.
-  std::string object;                        ///< Type of object returned, usually "text_completion".
-  uint64_t created;                          ///< Unix timestamp of when the response was created.
-  std::string model;                         ///< Specifies the model used for generating the response.
-  std::vector<model_choice_data_t> choices;  ///< Array of completion choices provided by the model.
-  model_usage_t usage;                       ///< Information about the usage of the model.
+  using choices_vector = sv::small_vector<model_choice_data_t, uint8_t, sv::at_least<model_choice_data_t, uint8_t>(1u)>;
+  std::string id;          ///< Unique identifier for the request.
+  std::string object;      ///< Type of object returned, usually "text_completion".
+  uint64_t created;        ///< Unix timestamp of when the response was created.
+  std::string model;       ///< Specifies the model used for generating the response.
+  choices_vector choices;  ///< Array of completion choices provided by the model.
+  model_usage_t usage;     ///< Information about the usage of the model.
   };
 
 auto is_valid_openai_bearer_key(std::string const & key) noexcept -> bool;
