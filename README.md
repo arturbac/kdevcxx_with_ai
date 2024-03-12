@@ -15,6 +15,8 @@ KDevCXX with AI is an innovative extension for the KDevelop IDE, focusing on int
 
 - **Multiple Presets** for AI query assistant working with new and existing code, explanation providing information with tools windows, refactor for refactoring old code
 - **Add kdevelop settings kcm ui** for easier settings access
+- **Kate plugin** resuing code with conditional build a Kate plugin from same code
+- **Chat with GPT windows** producing desired result with finall button apply to move result to code editor window.
   
 ## Getting Started
 
