@@ -86,7 +86,7 @@ using namespace std::string_view_literals;
 #ifndef ENABLE_CHAT_COMPLETIONS
 struct ai_command_json
   {
-  std::string model{"gpt-3.5-turbo-instruct"};
+  std::string model;
   std::string prompt;
   double temperature{0.5};
   uint16_t max_tokens = 4096;
@@ -98,7 +98,7 @@ struct ai_command_json
 
 struct ai_chat_command_json
   {
-  std::string model{"gpt-4-1106-preview"};
+  std::string model;
   std::array<message_t, 2> messages;
   double temperature{1.0};
   uint16_t max_tokens = 4096;
@@ -127,12 +127,14 @@ auto process_with_ai(std::string && user_data) -> expected<model_response_text_t
 try
   {
   using enum process_with_ai_error;
-  std::string result;
 
   aiprocess::ai_settings_t aisettings{aiprocess::load_ai_settings()};
   info("checking api key ..");
-  if(!is_valid_openai_bearer_key(aisettings.api_key))
+  if(!is_valid_openai_bearer_key(aisettings.api_key)) [[unlikely]]
     return unexpected_error(invalid_api_key, "invalid key bailing out");
+
+  if(aisettings.gpt_model.empty()) [[unlikely]]
+    return unexpected_error(no_gpt_model_specified, "No gpt model specified in settings");
 
   auto start_pos = user_data.find(command_start_delim);
   auto end_pos = user_data.find(command_end_delim, start_pos);
@@ -154,6 +156,7 @@ try
   size_t const aprox_tokens{code_text.size() / 2 + command_text.size()};
 #else
   ai_chat_command_json command{};
+  command.model = aisettings.gpt_model;
   command.messages[0].role = "system";
   command.messages[0].content = aisettings.cxx_rules;
   command.messages[1].role = "user";

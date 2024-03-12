@@ -58,27 +58,32 @@ auto load_app_settings() noexcept -> app_settings_t;
 enum struct ai_settings_version_e
   {
   v1 = 1,
-
-  latest = v1
+  v2,
+  latest = v2
   };
 
 consteval auto adl_enum_bounds(ai_settings_version_e)
   {
   using enum ai_settings_version_e;
-  return simple_enum::adl_info{v1, v1};
+  return simple_enum::adl_info{v1, latest};
   }
 
-static constexpr std::string_view default_ai_rules{
-  "You are great c++23 coder, prefering std::ranges and std::views over while and for loops,"
-  " using nodiscard if needed, you prefer short and fast code, when writing function you are using trailing return,"
-  " using lower_case convention always, if implementing  unit tests You use boost-ext/ut,"
-  " you dont produce explanations unless asked for, you always return ONLY CODE unless asked for something else"
+inline constexpr std::string_view default_ai_rules{
+  "You are great c++23 coder, preferring std::ranges and std::views over while and for loops,"
+  " using nodiscard attibute where appropriate, when possible You use constexpr, you prefer short and fast code,"
+  " when writing function you are using trailing return type,"
+  " using lower_case convention always, if implementing unit tests You use boost-ext/ut,"
+  " you don't produce explanations unless asked for, you return only code unless being asked for something else"
+  "when commenting code You use c++ comments like // or for comments block /* */"
 };
+
+inline constexpr std::string_view default_gpt_model{"gpt-4-1106-preview"};
 
 struct ai_settings_t
   {
   std::string api_key{};
   std::string cxx_rules{default_ai_rules};
+  std::string gpt_model{default_gpt_model};
 
   ai_settings_version_e version{simple_enum::limits::max<ai_settings_version_e>()};
   static constexpr ai_settings_version_e expected_version{simple_enum::limits::max<ai_settings_version_e>()};

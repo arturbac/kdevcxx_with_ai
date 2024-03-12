@@ -186,7 +186,7 @@ void kdevcxx_with_ai::on_process_with_ai()
   debug("document->replaceText called ...");
   }
 
-void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString & xmlFile, KActionCollection & actions)
+void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString &, KActionCollection & actions)
   {
   QAction * process_with_ai_action = new QAction(QIcon(":/icons/my_icon.png"), tr("Process with OpenAI"), this);
   process_with_ai_action->setToolTip(tr("Do something interesting with AI"));

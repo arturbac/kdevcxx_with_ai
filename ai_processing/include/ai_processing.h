@@ -40,6 +40,7 @@ enum struct process_with_ai_error
   {
   other_error,               ///< An unspecified error.
   invalid_api_key,           ///< The provided API key is invalid.
+  no_gpt_model_specified,    ///< Gpt model value from settings is empty.
   json_serialization_error,  ///< Error occurred during JSON serialization.
   no_valid_command           ///< No valid command was found in the request.
   };
