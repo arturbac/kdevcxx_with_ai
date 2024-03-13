@@ -92,10 +92,10 @@ void kdevcxx_with_ai::on_first_time()
     {
     info_dialog dialog(
       "KDevCxx_With_Ai key setup",
-      "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n"
-      "and enter your API key before calling any functions and adjust your rules for AI.\n"
+      "Please go to KDevelop settings and enter your API key before calling any functions and adjust your rules for "
+      "AI.\n"
       "You can change them at any time without restarting KDevelop.\n"
-      "Changes to kdevcxx_with_ai_ai_settings.json will take effect on every execution."
+      "Changes to AI settings will take effect on every execution."
     );
     dialog.exec();
     }
@@ -110,10 +110,11 @@ void kdevcxx_with_ai::on_process_with_ai()
     if(aisettings.api_key.empty())
       {
       info_dialog dialog{
-        "KDevCxx_With_Ai key setup still not done ..",
-        "Please edit file ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json\n and enter Your API key before "
-        "calling any functions and adjust Your rules for AI.\n You can change them at any time without restarting "
-        "KDevelop"
+        "KDevCxx_With_Ai key setup",
+        "Please go to KDevelop settings and enter your API key before calling any functions and adjust your language "
+        "rules for AI.\n"
+        "You can change them at any time without restarting KDevelop.\n"
+        "Changes to AI settings will take effect on every execution."
       };
       dialog.exec();
       return;
