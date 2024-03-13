@@ -80,7 +80,7 @@ Use provided install.sh script it will determine location of kdevplatform plugin
 
 ### 4. Configure OpenAI Key
 
-Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings located at ~/.config/kdevcxx_with_ai/kdevcxx_with_ai_ai_settings.json.
+Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings in KDeelop settings dialog.
 
 ## Usage
 
@@ -92,7 +92,7 @@ To use the AI functionality within the editor, follow these steps:
 
 2. Highlight the request and the target code.
 
-3. Press `Ctrl + 1` to activate the AI processing of selected request and code. With 0.1.3 there is context menu available `Process With OpenAI`
+3. Press `Ctrl + 1` or select from Drop down menu `Process with AI` to activate the AI processing of selected request and code in format \[AI perform command \]. With 0.1.3 there is context menu available `Process With OpenAI`
 
 
 
