@@ -7,6 +7,7 @@ set(kdevcxx_with_ai_SRCS
     info_dialog.cc
     plugin_settings.cc
     markdown_view.cc
+    kdevcxx_with_ai_config_page.cc
     ${CXX_WITH_GPT_UI_HEADERS}
 )
 

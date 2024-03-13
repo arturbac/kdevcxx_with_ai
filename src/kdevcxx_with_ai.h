@@ -35,6 +35,11 @@ public:
   auto createActionsForMainWindow(Sublime::MainWindow * window, QString & xmlFile, KActionCollection & actions)
     -> void override;
 
+  void unload() override;
+
+  KDevelop::ConfigPage * configPage(int number, QWidget * parent) override;
+  int configPages() const override;
+
 private slots:
 
   void on_process_with_ai();

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "kdevcxx_with_ai.h"
-
+#include "kdevcxx_with_ai_config_page.h"
 // #include <debug.h>
 
 #include <kpluginfactory.h>
@@ -21,6 +21,7 @@
 #include <qtimer.h>
 #include <kmessagebox.h>
 #include <kdevplatform/interfaces/context.h>
+#include <kdevplatform/interfaces/configpage.h>
 
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
@@ -216,6 +217,17 @@ auto kdevcxx_with_ai::contextMenuExtension(KDevelop::Context * context, QWidget 
 
   return extension;
   }
+
+int kdevcxx_with_ai::configPages() const { return 1; }
+
+auto kdevcxx_with_ai::configPage(int number, QWidget * parent) -> KDevelop::ConfigPage *
+  {
+  if(number == 0)
+    return new kdevcxx_with_ai_config_page(this, parent);
+  return nullptr;  // No other pages to return
+  }
+
+void kdevcxx_with_ai::unload() {}
 
 kdevcxx_with_ai::~kdevcxx_with_ai() {}
 

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Service
+X-KDE-Library=cxx_with_gpt
+X-KDE-PluginInfo-Author=Artur Bac
+X-KDE-PluginInfo-Email=arturbac.ab@gmail.com
+X-KDE-PluginInfo-Name=cxx_with_gpt
+X-KDE-PluginInfo-Version=1.0
+X-KDE-PluginInfo-Website=http://example.com/plugin
+X-KDE-PluginInfo-Category=KDevelop/Plugin
+X-KDE-PluginInfo-License=BSL
+X-KDE-PluginInfo-Description=OpenAI integration
+X-KDE-ServiceTypes=KDevelop/Plugin
