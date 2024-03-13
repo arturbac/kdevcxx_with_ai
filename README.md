@@ -122,7 +122,9 @@ or example refactoring of very old code
 
 ![Bez nazwy](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/f7128298-bcaf-4772-a929-9f94b23579c1)
 
+And perhaps the most weird use of AI i did with code, optimise ai query with ai for ai
 
+![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/a4ec262c-e805-4252-ab45-01b59be4ce38)
 
 
 ## License
