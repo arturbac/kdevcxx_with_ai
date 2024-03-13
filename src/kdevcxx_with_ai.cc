@@ -3,68 +3,35 @@
 
 #include "kdevcxx_with_ai.h"
 #include "kdevcxx_with_ai_config_page.h"
-// #include <debug.h>
 
 #include <kpluginfactory.h>
-#include <info_dialog.h>
 #include <kpluginloader.h>
-#include <kactioncollection.h>
-#include <qaction.h>
-#include <qapplication.h>
-#include <klocalizedstring.h>
+#include <info_dialog.h>
 #include <ktexteditor/application.h>
 #include <ktexteditor/mainwindow.h>
-#include <KConfigCore/kconfiggroup.h>
-#include <ksharedconfig.h>
-#include <kcoreconfigskeleton.h>
-#include <qprogressdialog.h>
-#include <qtimer.h>
-#include <kmessagebox.h>
+#include <ktexteditor/document.h>
+#include <ktexteditor/editor.h>
+#include <ktexteditor/view.h>
+#include <kactioncollection.h>
+
+#include <kdevplatform/interfaces/contextmenuextension.h>
 #include <kdevplatform/interfaces/context.h>
 #include <kdevplatform/interfaces/configpage.h>
+
+#include <qaction.h>
+#include <qtimer.h>
 
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
 #include <aiprocess/log.h>
 #include <aiprocess/obfuscate_text.h>
-#include <ai_processing.h>
-#include <fmt/core.h>
-#include <simple_enum/simple_enum.hpp>
-#include <string>
-#include <future>
-#include <thread>
-#include <chrono>
-#include "document_read_only.h"
-#include <stralgo/stralgo.h>
 #endif
 
-enum class get_view_file_path_error
-  {
-  no_document,
-  unhandled_exception
-  };
 using aiprocess::debug;
 using aiprocess::info;
 using aiprocess::log;
 using aiprocess::warn;
 
-[[nodiscard]]
-static auto get_view_file_path(KTextEditor::View const & view
-) noexcept -> expected<std::string, get_view_file_path_error>
-try
-  {
-  if(!view.document()) [[unlikely]]
-    return aiprocess::unexpected_error(get_view_file_path_error::no_document, "Document was not saved yet");
-
-  auto document = view.document();
-  return document->url().toLocalFile().toStdString();
-  }
-catch(...)
-  {
-  return aiprocess::unexpected_error(
-    get_view_file_path_error::unhandled_exception, "error getting path for current view document"
-  );
-  }
 K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "kdevcxx_with_ai.json", registerPlugin<kdevcxx_with_ai>();)
 
 kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDevelop::IPlugin("kdevcxx_with_ai", parent)
@@ -105,6 +72,13 @@ using namespace std::string_view_literals;
 
 void kdevcxx_with_ai::on_process_with_ai()
   {
+#if 1
+  auto * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
+  if(!view || !view->selection()) [[unlikely]]
+    return;
+
+  kdevcxxai::process_with_ai(*view, settings);
+#else
     {
     auto aisettings{aiprocess::load_ai_settings()};
     if(aisettings.api_key.empty())
@@ -174,7 +148,7 @@ void kdevcxx_with_ai::on_process_with_ai()
     }
 
   std::string cur_work_dir{};
-  if(auto path = get_view_file_path(*view); path.has_value())
+  if(auto path = kdevcxxai::get_view_file_path(*view); path.has_value())
     cur_work_dir = std::move(path.value());
 
   auto const & response = *result;
@@ -186,6 +160,7 @@ void kdevcxx_with_ai::on_process_with_ai()
 
   document->replaceText(view->selectionRange(), QString::fromStdString(new_text));
   debug("document->replaceText called ...");
+#endif
   }
 
 void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString &, KActionCollection & actions)

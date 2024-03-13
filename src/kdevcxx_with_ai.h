@@ -6,19 +6,13 @@
 #ifndef CXX_WITH_GPT_H
 #define CXX_WITH_GPT_H
 
+#include <plugin_common.h>
+
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
 #endif
 #include <kdevplatform/interfaces/iplugin.h>
-#include <kdevplatform/interfaces/contextmenuextension.h>
-#include <ktexteditor/document.h>
-#include <ktexteditor/editor.h>
-#include <ktexteditor/view.h>
-#include <kpluginfactory.h>
-#include <kpluginloader.h>
-#include <kactioncollection.h>
-#include <qaction.h>
-#include <klocalizedstring.h>
+
 #include <qobject.h>
 
 class kdevcxx_with_ai : public KDevelop::IPlugin

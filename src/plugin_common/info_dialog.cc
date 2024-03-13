@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 #include "info_dialog.h"
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QPushButton>
+#include <qboxlayout.h>
+#include <qlabel.h>
+#include <qpushbutton.h>
 
 info_dialog::info_dialog(QString const & title, QString const & text, QWidget * parent) : QDialog(parent)
   {
@@ -21,3 +21,7 @@ info_dialog::info_dialog(QString const & title, QString const & text, QWidget * 
 
   setLayout(layout);
   }
+
+info_dialog::~info_dialog()
+{}
+
