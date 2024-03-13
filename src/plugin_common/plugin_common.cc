@@ -51,13 +51,7 @@ auto process_with_ai(KTextEditor::View & view, aiprocess::app_settings_t const &
     auto aisettings{aiprocess::load_ai_settings()};
     if(aisettings.api_key.empty())
       {
-      info_dialog dialog{
-        "KDevCxx_With_Ai key setup",
-        "Please go to KDevelop settings and enter your API key before calling any functions and adjust your language "
-        "rules for AI.\n"
-        "You can change them at any time without restarting KDevelop.\n"
-        "Changes to AI settings will take effect on every execution."
-      };
+      info_dialog dialog{"KDevCxx_With_Ai key setup", fist_time_message};
       dialog.exec();
       return;
       }
