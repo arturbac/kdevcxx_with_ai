@@ -6,11 +6,8 @@
 #include <aiprocess/source_location.h>
 #include <aiprocess/concepts.h>
 #include <expectd.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
-#include <spdlog/spdlog.h>
-#pragma clang diagnostic pop
-#include <simple_enum/simple_enum.hpp>
+#include <aiprocess/spdlog.hpp>
+
 #include <fmt/core.h>
 #include <atomic>
 #include <concepts>
