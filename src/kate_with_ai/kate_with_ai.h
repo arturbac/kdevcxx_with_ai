@@ -50,4 +50,5 @@ private:
 
   kate_with_ai * plugin_;
   KTextEditor::MainWindow * main_window_;
+  QAction * openai_process_action{};
   };

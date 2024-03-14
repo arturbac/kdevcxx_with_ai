@@ -51,6 +51,9 @@ kate_with_ai_view::kate_with_ai_view(kate_with_ai * plugin, KTextEditor::MainWin
     plugin_{plugin},
     main_window_(main_window)
   {
+  openai_process_action = new QAction(tr("Process with OpenAI"), this);
+  connect(openai_process_action, &QAction::triggered, this, &kate_with_ai_view::on_process_with_ai);
+
   // Connect to the signal that notifies about the current view change
   connect(main_window_, &KTextEditor::MainWindow::viewChanged, this, &kate_with_ai_view::on_view_changed);
 
@@ -75,13 +78,11 @@ void kate_with_ai_view::on_context_menu_about_to_show(KTextEditor::View *, QMenu
   if(!menu) [[unlikely]]
     return;
 
-  info("Context menu registered for AI");
-  // Add your custom action to the menu
-  QAction * myAction = new QAction(tr("Process with OpenAI"), this);
-  connect(myAction, &QAction::triggered, this, &kate_with_ai_view::on_process_with_ai);
-
-  // Append your action to the context menu
-  menu->addAction(myAction);
+  if(!menu->actions().contains(openai_process_action))
+    {
+    info("Context menu registered for AI");
+    menu->addAction(openai_process_action);
+    }
   }
 
 void kate_with_ai_view::on_process_with_ai()
