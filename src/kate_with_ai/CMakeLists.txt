@@ -19,3 +19,7 @@ target_link_libraries(kate_with_ai
   KF5::I18n
   KF5::TextEditor
   )
+
+install(TARGETS kate_with_ai
+    LIBRARY DESTINATION lib64/qt5/plugins/ktexteditor
+)
