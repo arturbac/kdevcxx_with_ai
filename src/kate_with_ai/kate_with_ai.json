@@ -1,0 +1,24 @@
+{
+  "KPlugin": {
+    "Id": "kate_with_ai",
+    "Name": "Kate with AI",
+    "Version": "0.1.4",
+    "KPluginFormFactor": "desktop",
+    "License": "MIT",
+    "Category": "TextEditor/Plugin",
+    "Website": "https://github.com/arturbac/kdevcxx_with_ai",
+    "Author": "Artur Bać",
+    "Email": "arturbac.ab@gmail.com",
+    "Description": "Enhance Kate with AI-powered features, providing advanced editing capabilities.",
+    "ServiceTypes": [
+      "KTextEditor/Plugin"
+    ],
+    "MimeType": [
+      "text/plain"
+    ]
+  },
+  "KatePlugin": {
+    "load": true,
+    "configurable": true
+  }
+}

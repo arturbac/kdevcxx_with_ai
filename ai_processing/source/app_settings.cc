@@ -17,18 +17,31 @@ namespace aiprocess
   {
 using stringutils::path_with_file_name;
 
+consteval auto settings_file_name(backend_type_e backend) noexcept
+  {
+  if(backend_type_e::kdevelop == backend)
+    return kdevcxx_with_ai_app_settings_file_name;
+  else
+    return kate_with_ai_app_settings_file_name;
+  }
+
+template<backend_type_e backend>
 auto load_app_settings() noexcept -> app_settings_t
   {
-  auto full_path{path_with_file_name(get_config_path(), kdevcxx_with_ai_app_settings_file_name)};
+  auto full_path{path_with_file_name(get_config_path(), settings_file_name(backend))};
   auto cfg{unversal_config_io_t<app_settings_t>::operator()<log_general_log_e::yes>(full_path)};
   if(cfg.has_value()) [[likely]]
     return cfg.value();
   return {};
   }
 
+template auto load_app_settings<backend_type_e::kdevelop>() noexcept -> app_settings_t;
+template auto load_app_settings<backend_type_e::kate>() noexcept -> app_settings_t;
+
+template<backend_type_e backend>
 auto store_app_settings(app_settings_t const & cfg) noexcept -> bool
   {
-  auto full_path{path_with_file_name(get_config_path(), kdevcxx_with_ai_app_settings_file_name)};
+  auto full_path{path_with_file_name(get_config_path(), settings_file_name(backend))};
   auto res{unversal_config_io_t<app_settings_t>{}(cfg, full_path)};
   if(!res)
     li::error("Error storing settings at {}", full_path);
@@ -36,6 +49,9 @@ auto store_app_settings(app_settings_t const & cfg) noexcept -> bool
     debug("Stored settings at {}", full_path);
   return res.has_value();
   }
+
+template auto store_app_settings<backend_type_e::kdevelop>(app_settings_t const & cfg) noexcept -> bool;
+template auto store_app_settings<backend_type_e::kate>(app_settings_t const & cfg) noexcept -> bool;
 
 auto get_config_path() noexcept -> std::string
   {

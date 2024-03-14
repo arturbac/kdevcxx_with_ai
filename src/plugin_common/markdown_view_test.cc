@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include <qapplication.h>
 #include <qmainwindow.h>
 #include "markdown_view.h"

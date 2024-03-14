@@ -12,7 +12,22 @@
 
 namespace aiprocess
   {
+
+enum struct backend_type_e
+  {
+  kate,
+  kdevelop
+  };
+
+consteval auto adl_enum_bounds(backend_type_e)
+  {
+  using enum backend_type_e;
+  return simple_enum::adl_info{kate, kdevelop};
+  }
+
 inline constexpr string_view kdevcxx_with_ai_app_settings_file_name{"kdevcxx_with_ai_app_settings.json"};
+inline constexpr string_view kate_with_ai_app_settings_file_name{"kate_with_ai_app_settings.json"};
+
 inline constexpr string_view kdevcxx_with_ai_ai_settings_file_name{"kdevcxx_with_ai_ai_settings.json"};
 
 enum struct app_settings_version_e
@@ -25,7 +40,7 @@ enum struct app_settings_version_e
 consteval auto adl_enum_bounds(app_settings_version_e)
   {
   using enum app_settings_version_e;
-  return simple_enum::adl_info{v1, v1};
+  return simple_enum::adl_info{v1, latest};
   }
 
 struct app_settings_t
@@ -53,8 +68,17 @@ struct app_settings_t
   static constexpr app_settings_version_e expected_version{simple_enum::limits::max<app_settings_version_e>()};
   };
 
+template<backend_type_e>
 auto load_app_settings() noexcept -> app_settings_t;
+
+extern template auto load_app_settings<backend_type_e::kdevelop>() noexcept -> app_settings_t;
+extern template auto load_app_settings<backend_type_e::kate>() noexcept -> app_settings_t;
+
+template<backend_type_e>
 auto store_app_settings(app_settings_t const & cfg) noexcept -> bool;
+
+extern template auto store_app_settings<backend_type_e::kdevelop>(app_settings_t const & cfg) noexcept -> bool;
+extern template auto store_app_settings<backend_type_e::kate>(app_settings_t const & cfg) noexcept -> bool;
 
 enum struct ai_settings_version_e
   {
@@ -126,6 +150,7 @@ struct ai_settings_t
  *
  * @return ai_settings_t containing the settings for the AI.
  */
+
 [[nodiscard]]
 auto load_ai_settings() noexcept -> ai_settings_t;
 
@@ -135,7 +160,8 @@ auto load_ai_settings() noexcept -> ai_settings_t;
  * @param cfg The AI settings to store.
  * @return True if successful, false otherwise.
  */
-auto store_ai_settings(ai_settings_t const & cfg) noexcept -> bool;
+
+auto store_ai_settings(ai_settings_t const &) noexcept -> bool;
 
 /**
  * Retrieves the home directory of the current user.

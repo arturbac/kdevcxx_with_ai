@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include <kdevplatform/interfaces/configpage.h>
+#include <ktexteditor/configpage.h>
 #include <plugin_common.h>
 
-class kdevcxx_with_ai_config_page : public KDevelop::ConfigPage
+class kate_with_ai_config_page : public KTextEditor::ConfigPage
   {
   Q_OBJECT
 
 public:
-  explicit kdevcxx_with_ai_config_page(KDevelop::IPlugin * plugin, QWidget * parent = nullptr);
+  explicit kate_with_ai_config_page(QWidget * parent = nullptr);
 
   QString name() const override;
   QString fullName() const override;

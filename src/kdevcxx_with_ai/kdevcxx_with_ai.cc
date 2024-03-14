@@ -9,7 +9,6 @@
 #include <info_dialog.h>
 #include <ktexteditor/application.h>
 #include <ktexteditor/mainwindow.h>
-#include <ktexteditor/document.h>
 #include <ktexteditor/editor.h>
 #include <ktexteditor/view.h>
 #include <kactioncollection.h>
@@ -37,7 +36,7 @@ K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "kdevcxx_with_ai.json", register
 kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDevelop::IPlugin("kdevcxx_with_ai", parent)
   {
   log(aiprocess::level::info, "Starting plugin KDevCxx_With_Ai");
-  settings = aiprocess::load_app_settings();
+  settings = aiprocess::load_app_settings<aiprocess::backend_type_e::kdevelop>();
   aiprocess::setup_loggers(settings);
   info("Settings loaded");
   QTimer::singleShot(200, this, &kdevcxx_with_ai::on_first_time);
@@ -58,7 +57,7 @@ void kdevcxx_with_ai::on_first_time()
   aiprocess::warn("cxx_rules {}", aisettings.cxx_rules);
   if(aisettings.api_key.empty())
     {
-    info_dialog dialog( "KDevCxx_With_Ai Initialization", kdevcxxai::fist_time_message );
+    info_dialog dialog("KDevCxx_With_Ai Initialization", kdevcxxai::fist_time_message);
     dialog.exec();
     }
   }
@@ -67,13 +66,11 @@ using namespace std::string_view_literals;
 
 void kdevcxx_with_ai::on_process_with_ai()
   {
-
   auto * view = KTextEditor::Editor::instance()->application()->activeMainWindow()->activeView();
   if(!view || !view->selection()) [[unlikely]]
     return;
 
   kdevcxxai::process_with_ai(*view, settings);
-
   }
 
 void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString &, KActionCollection & actions)

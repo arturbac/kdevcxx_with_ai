@@ -29,3 +29,4 @@ if [ $? -eq 0 ]; then
 else
     echo "Plugin installation failed."
 fi
+

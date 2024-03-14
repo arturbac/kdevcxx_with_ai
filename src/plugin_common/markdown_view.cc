@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #include "markdown_view.h"
 #include <qtextstream.h>
 

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 Artur Bać
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include <simple_enum/simple_enum.hpp>

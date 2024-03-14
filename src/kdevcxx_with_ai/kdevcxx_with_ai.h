@@ -3,9 +3,6 @@
 
 #pragma once
 
-#ifndef CXX_WITH_GPT_H
-#define CXX_WITH_GPT_H
-
 #include <plugin_common.h>
 
 #ifndef Q_MOC_RUN
@@ -41,5 +38,3 @@ private slots:
 
 private:
   };
-
-#endif  // CXX_WITH_GPT_H

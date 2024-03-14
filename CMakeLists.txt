@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.21)
 
+include(FeatureSummary)
+include(cmake/CPM.cmake)
 
 project(kdevcxx_with_ai LANGUAGES CXX
     HOMEPAGE_URL "http://github/arturbac/kdevcxx_with_ai"
-    DESCRIPTION "KDevelop OpenAI API plugin"
-    VERSION 0.1.0
+    DESCRIPTION "KDevelop and Kate OpenAI API plugin"
+    VERSION 0.1.4
    )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -22,7 +24,7 @@ endif()
 
 add_compile_options("-fPIC")
 
-include(cmake/CPM.cmake)
+
 #----------------------------------------------------------------
 # simple_enum
 #----------------------------------------------------------------
@@ -104,30 +106,6 @@ add_subdirectory(unittests)
 include(cmake/spdx_check.cmake)
 
 #----------------------------------------------------------------
-# kde junk below this like don not add any targets here to this as those KDE* cmake things brake normal code build and modfiy compile flags
-
-find_package(ECM "5.68.0" CONFIG REQUIRED)
-set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
-
-include(KDEInstallDirs)
-include(KDECMakeSettings)
-include(KDECompilerSettings NO_POLICY_SCOPE)
-include(ECMQtDeclareLoggingCategory)
-include(FeatureSummary)
-
-find_package(KDevPlatform 5.2.40 REQUIRED)
-
-# Find the required Qt and KDE modules
-find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
-find_package(KF5CoreAddons REQUIRED)
-find_package(KF5WidgetsAddons REQUIRED)
-find_package(KF5I18n REQUIRED)
-
-# Instruct CMake to run moc, uic, and rcc automatically
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-
 add_subdirectory(src)
 
 # ecm_qt_install_logging_categories(
@@ -137,5 +115,3 @@ add_subdirectory(src)
 # )
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
-
-#https://github.com/libcpr/cpr
