@@ -14,17 +14,15 @@ KDevCXX with AI is an innovative extension for the KDevelop IDE and Kate Editor,
 ## Planned Features
 
 - **Multiple Presets** for AI query assistant working with new and existing code, explanation providing information with tools windows, refactor for refactoring old code
-- **Add kdevelop settings kcm ui** for easier settings access
-- **Kate plugin** reusing plugin code with conditional build as Kate plugin
 - **Chat with GPT windows** producing desired result with finall button apply to move result to code editor window.
   
 ## Getting Started
 
 ### Prerequisites
 
-- KDevelop IDE installed on your system.
+- KDevelop IDE installed on your system for kdevelop plugin
+- Kate Editor installed on your system for kate plugin
 - Internet connection for accessing AI features.
-
 
 ## Required System Packages
 
@@ -72,29 +70,30 @@ Use CMake to build the plugin with the following command:
 ```bash
 cmake --workflow --preset="clang-release"
 ```
+kate plugin will be build and if kdevplatform development headers and libraries are present then kdevelop plugin will be build also.
 
 ### 3. Install the Plugin
 
-Use provided install.sh script it will determine location of kdevplatform plugins and install plugin into that directory
+Use provided install_kdeveplugin.sh and or install_kateplugin.sh scripts it will determine location of kdevplatform plugins and qt/plugins for texteditor and install plugins into that directories
 
 
 ### 4. Configure OpenAI Key
 
-Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings in KDeelop settings dialog.
+Upon launching KDevelop, a modal dialog will appear, prompting you to review and update your settings in KDevelop settings dialog.
+For kate You need to go Kate settings and enable plugin and edit them.
+Note that ai settings are shared between kate and kdevelop, so You only need to do it once.
 
 ## Usage
 
-After installing the plugin, restart KDevelop. The AI features should now be seamlessly integrated into your IDE.
+After installing the plugin, restart KDevelop/Kate. The AI features should now be seamlessly integrated into your IDE.
 
 To use the AI functionality within the editor, follow these steps:
 
-1. Write your AI request in the editor, preceded by `[AI DO something for me with that code]`, followed by the code you wish AI to analyze or modify.
+1. Write your AI request in the editor, preceded by `[AI Do something for me with that code]`, followed by the code/text you wish AI to analyze or modify.
 
 2. Highlight the request and the target code.
 
-3. Press `Ctrl + 1` or select from Drop down menu `Process with AI` to activate the AI processing of selected request and code in format \[AI perform command \]. With 0.1.3 there is context menu available `Process With OpenAI`
-
-
+3. Select from Drop down menu `Process with AI` to activate the AI processing of selected request and code in format \[AI perform command \].
 
 
 ## Example use 
@@ -125,6 +124,10 @@ or example refactoring of very old code
 And perhaps the most weird use of AI i did with code, optimise ai query with ai for ai
 
 ![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/a4ec262c-e805-4252-ab45-01b59be4ce38)
+
+Or some crazy s...
+
+![obraz](https://github.com/arturbac/kdevcxx_with_ai/assets/14975842/952db481-e76a-4935-a812-5cb10c951421)
 
 
 ## License
