@@ -67,14 +67,12 @@ namespace config_page
     };
 
   template<aiprocess::backend_type_e>
-  auto construct(KTextEditor::ConfigPage &, ui_t &, std::function<void()> const &) -> void;
+  auto construct(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
 
   extern template auto
-    construct<aiprocess::backend_type_e::kdevelop>(KTextEditor::ConfigPage &, ui_t &, std::function<void()> const &)
-      -> void;
+    construct<aiprocess::backend_type_e::kdevelop>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
   extern template auto
-    construct<aiprocess::backend_type_e::kate>(KTextEditor::ConfigPage &, ui_t &, std::function<void()> const &)
-      -> void;
+    construct<aiprocess::backend_type_e::kate>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
 
   template<aiprocess::backend_type_e>
   auto apply(ui_t &) -> void;

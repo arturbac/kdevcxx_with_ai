@@ -162,13 +162,15 @@ namespace config_page
     };
 
   template<aiprocess::backend_type_e backend>
-  auto construct(KTextEditor::ConfigPage & w, ui_t & ui, std::function<void()> const & emit_chnaged) -> void
+  auto construct(KTextEditor::ConfigPage & w, ui_t & ui, std::function<void()> emit_changed) -> void
     {
+    aiprocess::debug("construct() called");
     QVBoxLayout * main_layout = new QVBoxLayout(&w);
     QTabWidget * ai_tab_widget = new QTabWidget(&w);
     main_layout->addWidget(ai_tab_widget);
 
-    auto emit_changed = [&]<typename... Args>(Args &&...) { emit_chnaged(); };
+    // auto emit_changed = [&]() { pemit_chnaged(); };
+    // auto emit_changed = [&]<typename... Args>(Args &&...) { pemit_chnaged(); };
 
     // Create a widget to hold the form layout
     QWidget * ai_form_widget = new QWidget();
@@ -218,14 +220,13 @@ namespace config_page
 
     ai_tab_widget->addTab(log_form_widget, i18n("Logging"));
     reset<backend>(ui);
+    aiprocess::debug("construct() end");
     }
 
   template auto
-    construct<aiprocess::backend_type_e::kdevelop>(KTextEditor::ConfigPage &, ui_t &, std::function<void()> const &)
-      -> void;
+    construct<aiprocess::backend_type_e::kdevelop>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
   template auto
-    construct<aiprocess::backend_type_e::kate>(KTextEditor::ConfigPage &, ui_t &, std::function<void()> const &)
-      -> void;
+    construct<aiprocess::backend_type_e::kate>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
 
   template<aiprocess::backend_type_e backend>
   auto apply(ui_t & ui) -> void
@@ -249,6 +250,7 @@ namespace config_page
       .important_log_level = level_enum(ui.important_log_level_combo->currentIndex()),
       .activation_keys = ui.activation_keys_spin->value()
     });
+    aiprocess::debug("apply() end");
     }
 
   template auto apply<aiprocess::backend_type_e::kdevelop>(ui_t &) -> void;
