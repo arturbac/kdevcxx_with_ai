@@ -7,21 +7,11 @@
 #include <aiprocess/concepts.h>
 #include <expectd.h>
 #include <aiprocess/spdlog.hpp>
-
+#include <simple_enum/fmtlib_format.hpp>
 #include <fmt/core.h>
 #include <atomic>
 #include <concepts>
 #include <chrono>
-
-template<simple_enum::bounded_enum T>
-struct fmt::formatter<T> : fmt::formatter<std::string_view>
-  {
-  template<typename FormatContext>
-  auto format(T c, FormatContext & ctx) noexcept
-    {
-    return fmt::formatter<std::string_view>::format(simple_enum::enum_name(c), ctx);
-    }
-  };
 
 namespace aiprocess
   {

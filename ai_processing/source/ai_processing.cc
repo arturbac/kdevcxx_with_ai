@@ -234,7 +234,7 @@ auto parse_json_choices(std::string_view response_json_data, std::string && clan
         str.append(formatted.value());
       else
         {
-        li::error("Recived errof from clang format continuing with unformatted code ..", formatted.error());
+        li::error("Recived error from clang format continuing with unformatted code ..", formatted.error());
         str.append(unformatted);
         }
       return str;
@@ -242,8 +242,7 @@ auto parse_json_choices(std::string_view response_json_data, std::string && clan
 
     return stralgo::stl::compose(
       // clang-format off
-      "/*\n"
-      " id : "sv, mr.id, " object : "sv, mr.object, " created : "sv, mr.created, " model : "sv, mr.model, "\n"
+      "/* id : "sv, mr.id, " object : "sv, mr.object, " created : "sv, mr.created, " model : "sv, mr.model, "\n"
       " choices :\n"
       "*/\n"
       "// AI CODE BLOCK BEGIN\n"sv,
@@ -270,8 +269,8 @@ auto process_openai_json_response(model_response_text_t const & data, std::strin
   if(data.send_text.empty())
     return stralgo::stl::merge(
       // clang-format off
-      "\n#if 1\n"
-      "// executed [AI"sv, data.command,"]\n"sv,
+      "\n"
+      "// executed [AI "sv, data.command,"]\n"sv,
       parse_json_choices(data.recived_text, std::move(clang_format_working_directory)), '\n',
       "#endif\n"sv
       // clang-format on
@@ -279,11 +278,11 @@ auto process_openai_json_response(model_response_text_t const & data, std::strin
   else
     return stralgo::stl::merge(
       // clang-format off
-      "\n#if 1\n"sv,
-      "// executed [AI"sv, data.command,"]\n"sv,
+      "\n// executed [AI "sv, data.command," ]\n"
+      "//-----------------------------------------------------------------------------\n"sv,
       parse_json_choices(data.recived_text, std::move(clang_format_working_directory)), '\n',
-      "#else\n"
-      "//[AI"sv, data.command,"]\n"sv,
+      "//-----------------------------------------------------------------------------\n"
+      "#if 0\n"sv,
       data.send_text, '\n',
       "#endif\n"sv
       // clang-format on
