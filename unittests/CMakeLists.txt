@@ -3,10 +3,10 @@
 #----------------------------------------------------------------
 CPMAddPackage(
   ut
-  GITHUB_REPOSITORY boost-ext/ut
-  GIT_TAG        v2.0.1
+  GITHUB_REPOSITORY arturbac/ut-ext
+  GIT_TAG        v2.0.1_2
 )
-find_package(ut REQUIRED)
+# find_package(ut REQUIRED)
 
 
 add_engine_ut(parse_json_response_ut.cc)

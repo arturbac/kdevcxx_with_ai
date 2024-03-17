@@ -31,7 +31,7 @@ add_compile_options("-fPIC")
 CPMAddPackage(
   Name simple_enum
   GITHUB_REPOSITORY arturbac/simple_enum
-  GIT_TAG v0.6.0
+  GIT_TAG v0.6.2
 )
 # clang exposes static operators() in c++20 compile mode even when not asked to do so
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -44,7 +44,7 @@ find_package(simple_enum REQUIRED)
 CPMAddPackage(
   small_vectors
   GITHUB_REPOSITORY arturbac/small_vectors
-  GIT_TAG        v3.1.0
+  GIT_TAG        v3.1.1
   )
 find_package(small_vectors REQUIRED)
 # clang exposes static operators() in c++20 compile mode even when not asked to do so
@@ -57,7 +57,7 @@ endif()
 CPMAddPackage(
   stralgo
   GITHUB_REPOSITORY arturbac/stralgo
-  GIT_TAG        v1.2.0
+  GIT_TAG        v1.2.1
   OPTIONS "STRALGO_ENABLE_UNIT_TESTS=OFF"
   )
 find_package(stralgo REQUIRED)
