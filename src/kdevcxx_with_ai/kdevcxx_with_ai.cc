@@ -5,7 +5,7 @@
 #include "kdevcxx_with_ai_config_page.h"
 
 #include <kpluginfactory.h>
-#include <kpluginloader.h>
+#include <qpluginloader.h>
 #include <info_dialog.h>
 #include <ktexteditor/application.h>
 #include <ktexteditor/mainwindow.h>
@@ -33,7 +33,8 @@ using aiprocess::warn;
 
 K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "kdevcxx_with_ai.json", registerPlugin<kdevcxx_with_ai>();)
 
-kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDevelop::IPlugin("kdevcxx_with_ai", parent)
+kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) :
+  KDevelop::IPlugin(QStringLiteral("kdevcxx_with_ai"), parent, KPluginMetaData())
   {
   log(aiprocess::level::info, "Starting plugin KDevCxx_With_Ai");
   settings = aiprocess::load_app_settings<aiprocess::backend_type_e::kdevelop>();
@@ -57,7 +58,7 @@ void kdevcxx_with_ai::on_first_time()
   aiprocess::warn("cxx_rules {}", aisettings.cxx_rules);
   if(aisettings.api_key.empty())
     {
-    info_dialog dialog("KDevCxx_With_Ai Initialization", kdevcxxai::fist_time_message);
+    info_dialog dialog(QStringLiteral("KDevCxx_With_Ai Initialization"), kdevcxxai::fist_time_message);
     dialog.exec();
     }
   }
@@ -75,13 +76,13 @@ void kdevcxx_with_ai::on_process_with_ai()
 
 void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString &, KActionCollection & actions)
   {
-  QAction * process_with_ai_action = new QAction(QIcon(":/icons/my_icon.png"), tr("Process with OpenAI"), this);
+  QAction * process_with_ai_action = new QAction(QIcon(QStringLiteral(":/icons/my_icon.png")), tr("Process with OpenAI"), this);
   process_with_ai_action->setToolTip(tr("Do something interesting with AI"));
 
   process_with_ai_action->setShortcut(settings.activation_keys);
   info("Key for AI binded to {}", settings.activation_keys);
 
-  actions.addAction("process_with_ai", process_with_ai_action);
+  actions.addAction(QStringLiteral("process_with_ai"), process_with_ai_action);
   connect(process_with_ai_action, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);
   }
 
@@ -94,7 +95,7 @@ auto kdevcxx_with_ai::contextMenuExtension(KDevelop::Context * context, QWidget 
     {
     info("Context menu registered for AI");
     // This is just an example; customize it based on your plugin's functionality
-    QAction * process_with_ai_action = new QAction(QIcon::fromTheme("system-run"), tr("Process with OpenAI"), parent);
+    QAction * process_with_ai_action = new QAction(QIcon::fromTheme(QStringLiteral("system-run")), tr("Process with OpenAI"), parent);
     connect(process_with_ai_action, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);
 
     // Add your action to the extension

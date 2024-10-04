@@ -15,7 +15,7 @@ info_dialog::info_dialog(QString const & title, QString const & text, QWidget * 
   layout->addWidget(label);
 
   // Optional: Add a button to close the dialog
-  QPushButton * close_button = new QPushButton("Close", this);
+  QPushButton * close_button = new QPushButton(QLatin1String("Close"), this);
   connect(close_button, &QPushButton::clicked, this, &info_dialog::accept);
   layout->addWidget(close_button);
 

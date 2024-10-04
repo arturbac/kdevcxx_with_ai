@@ -4,7 +4,7 @@
 search_paths=("/usr/lib64" "/usr/lib")
 
 # Destination path suffix
-path_suffix="qt5/plugins/ktexteditor"
+path_suffix="qt6/plugins/ktexteditor"
 
 # Compiled plugin to copy
 compiled_plugin="build/clang-release/bin/ktexteditor/kate_with_ai.so"

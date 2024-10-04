@@ -57,7 +57,7 @@ auto process_with_ai(KTextEditor::View & view, aiprocess::app_settings_t const &
     auto aisettings{aiprocess::load_ai_settings()};
     if(aisettings.api_key.empty())
       {
-      info_dialog dialog{"KDevCxx_With_Ai key setup", fist_time_message};
+      info_dialog dialog{QStringLiteral("KDevCxx_With_Ai key setup"), fist_time_message};
       dialog.exec();
       return;
       }
@@ -73,7 +73,7 @@ auto process_with_ai(KTextEditor::View & view, aiprocess::app_settings_t const &
     }
 
   info("Processing OpenAI request ...");
-  QProgressDialog progressDialog{"Processing OpenAI Request...", "Cancel", 0, 100};
+  QProgressDialog progressDialog{QStringLiteral("Processing OpenAI Request..."), QStringLiteral("Cancel"), 0, 100};
   progressDialog.setWindowModality(Qt::WindowModal);
   progressDialog.show();
 
@@ -106,7 +106,7 @@ auto process_with_ai(KTextEditor::View & view, aiprocess::app_settings_t const &
         "\ncheck detailed log at ~/.config/kdevcxx_with_ai/"sv,
         settings.log_path
       )),
-      "Error during processing AI request"
+      QStringLiteral("Error during processing AI request")
     );
     return;
     }
@@ -176,11 +176,11 @@ namespace config_page
     QWidget * ai_form_widget = new QWidget();
     QFormLayout * ai_form_layout = new QFormLayout(ai_form_widget);
 
-    ui.openai_key = config_widget_creator_t<QLineEdit>{ai_form_widget, ai_form_layout}("OpenAI Key:", emit_changed);
+    ui.openai_key = config_widget_creator_t<QLineEdit>{ai_form_widget, ai_form_layout}(QStringLiteral("OpenAI Key:"), emit_changed);
     ui.open_ai_model
-      = config_widget_creator_t<QLineEdit>{ai_form_widget, ai_form_layout}("OpenAI Model:", emit_changed);
+      = config_widget_creator_t<QLineEdit>{ai_form_widget, ai_form_layout}(QStringLiteral("OpenAI Model:"), emit_changed);
     ui.language_rules
-      = config_widget_creator_t<QPlainTextEdit>{ai_form_widget, ai_form_layout}("Language Rules:", emit_changed);
+      = config_widget_creator_t<QPlainTextEdit>{ai_form_widget, ai_form_layout}(QStringLiteral("Language Rules:"), emit_changed);
 
     ai_tab_widget->addTab(ai_form_widget, i18n("AI Configuration"));
 
@@ -191,20 +191,21 @@ namespace config_page
 
       {
       config_widget_creator_t<QLineEdit> creator{log_form_widget, log_form_layout};
-      ui.log_path_edit = creator("Log Path:", emit_changed);
-      ui.console_log_pattern_edit = creator("Console Log Pattern:", emit_changed);
-      ui.general_log_pattern_edit = creator("General Log Pattern:", emit_changed);
-      ui.snippet_log_pattern_edit = creator("Snippet Log Pattern:", emit_changed);
-      ui.important_log_pattern_edit = creator("Important Log Pattern:", emit_changed);
+      ui.log_path_edit = creator(QStringLiteral("Log Path:"), emit_changed);
+      ui.console_log_pattern_edit = creator(QLatin1String("Console Log Pattern:"), emit_changed);
+      ui.general_log_pattern_edit = creator(QLatin1String("General Log Pattern:"), emit_changed);
+      ui.snippet_log_pattern_edit = creator(QLatin1String("Snippet Log Pattern:"), emit_changed);
+      ui.important_log_pattern_edit = creator(QLatin1String("Important Log Pattern:"), emit_changed);
       }
 
       {
-      QStringList logLevels = {"trace", "debug", "info", "warn", "error", "critical"};
+      QStringList logLevels = {QLatin1String("trace"), QLatin1String("debug"), QLatin1String("info"),
+                               QLatin1String("warn"), QLatin1String("error"), QLatin1String("critical")};
       config_widget_creator_t<QComboBox> creator{log_form_widget, log_form_layout};
-      ui.console_log_level_combo = creator("Console Log Pattern:", logLevels, emit_changed);
-      ui.general_log_level_combo = creator("General Log Level:", logLevels, emit_changed);
-      ui.snippet_log_level_combo = creator("Snippet Log Pattern:", logLevels, emit_changed);
-      ui.important_log_level_combo = creator("Important Log Pattern:", logLevels, emit_changed);
+      ui.console_log_level_combo = creator(QLatin1String("Console Log Pattern:"), logLevels, emit_changed);
+      ui.general_log_level_combo = creator(QLatin1String("General Log Level:"), logLevels, emit_changed);
+      ui.snippet_log_level_combo = creator(QLatin1String("Snippet Log Pattern:"), logLevels, emit_changed);
+      ui.important_log_level_combo = creator(QLatin1String("Important Log Pattern:"), logLevels, emit_changed);
       }
 
     ui.flush_every_spin = new QSpinBox(log_form_widget);

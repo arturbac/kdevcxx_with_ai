@@ -26,11 +26,11 @@ struct app_settings_t;
 namespace kdevcxxai
   {
 inline constexpr auto fist_time_message
-  = "Kindly navigate to the KDevelop settings to provide your API key for activation.\n"
+  = QLatin1String("Kindly navigate to the KDevelop settings to provide your API key for activation.\n"
     " Additionally, fine-tune the AI behavior by adjusting the rule set to your preference.\n"
     "Modifications to the API key or rules can be made at any moment and will be applied immediately,\n"
     "negating the necessity for a KDevelop restart.\n"
-    "Alterations to AI settings will be effective upon the next invocation.";
+    "Alterations to AI settings will be effective upon the next invocation.");
 
 enum class get_view_file_path_error
   {
