@@ -17,7 +17,7 @@ class info_dialog : public QDialog
 
 public:
   explicit info_dialog(QString const & title, QString const & text, QWidget * parent = nullptr);
-  
+
   ~info_dialog() override;
   };
 

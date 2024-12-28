@@ -27,10 +27,10 @@ public:
   explicit kate_with_ai(QObject * parent, QList<QVariant> const & = QList<QVariant>());
   ~kate_with_ai() override;
 
-  QObject * createView(KTextEditor::MainWindow * mainWindow) override;
+  [[nodiscard]] auto createView(KTextEditor::MainWindow * mainWindow) -> QObject * override;
 
-  int configPages() const override;
-  KTextEditor::ConfigPage * configPage(int number, QWidget * parent) override;
+  [[nodiscard]] auto configPages() const -> int override;
+  [[nodiscard]] auto configPage(int number, QWidget * parent) -> KTextEditor::ConfigPage* override;
   };
 
 class kate_with_ai_view : public QWidget

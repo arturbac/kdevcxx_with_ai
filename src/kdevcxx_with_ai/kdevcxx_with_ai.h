@@ -21,15 +21,15 @@ public:
   kdevcxx_with_ai(QObject * parent, QVariantList const & args);
   ~kdevcxx_with_ai() override;
 
-  auto contextMenuExtension(KDevelop::Context * context, QWidget * parent) -> KDevelop::ContextMenuExtension override;
+  [[nodiscard]] auto contextMenuExtension(KDevelop::Context * context, QWidget * parent) -> KDevelop::ContextMenuExtension override;
 
   auto createActionsForMainWindow(Sublime::MainWindow * window, QString & xmlFile, KActionCollection & actions)
     -> void override;
 
-  void unload() override;
+  auto unload() -> void override;
 
-  KDevelop::ConfigPage * configPage(int number, QWidget * parent) override;
-  int configPages() const override;
+  [[nodiscard]] auto configPage(int number, QWidget * parent) ->KDevelop::ConfigPage* override;
+  [[nodiscard]] auto configPages() const -> int override;
 
 private slots:
 

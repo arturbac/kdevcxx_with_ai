@@ -19,6 +19,8 @@ public:
 
   void load_markdown(QString const & file_path);
 
+  ~markdown_view() override;
+
 private:
   QWebEngineView * web_view;
   };

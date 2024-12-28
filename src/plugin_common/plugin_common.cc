@@ -165,16 +165,16 @@ namespace config_page
   auto construct(KTextEditor::ConfigPage & w, ui_t & ui, std::function<void()> emit_changed) -> void
     {
     aiprocess::debug("construct() called");
-    QVBoxLayout * main_layout = new QVBoxLayout(&w);
-    QTabWidget * ai_tab_widget = new QTabWidget(&w);
+    auto * main_layout = new QVBoxLayout{&w};
+    auto * ai_tab_widget = new QTabWidget{&w};
     main_layout->addWidget(ai_tab_widget);
 
     // auto emit_changed = [&]() { pemit_chnaged(); };
     // auto emit_changed = [&]<typename... Args>(Args &&...) { pemit_chnaged(); };
 
     // Create a widget to hold the form layout
-    QWidget * ai_form_widget = new QWidget();
-    QFormLayout * ai_form_layout = new QFormLayout(ai_form_widget);
+    auto * ai_form_widget = new QWidget{};
+    auto * ai_form_layout = new QFormLayout{ai_form_widget};
 
     ui.openai_key = config_widget_creator_t<QLineEdit>{ai_form_widget, ai_form_layout}("OpenAI Key:", emit_changed);
     ui.open_ai_model
@@ -186,8 +186,8 @@ namespace config_page
 
     // second page
 
-    QWidget * log_form_widget = new QWidget();
-    QFormLayout * log_form_layout = new QFormLayout(log_form_widget);
+    auto * log_form_widget = new QWidget{};
+    auto * log_form_layout = new QFormLayout{log_form_widget};
 
       {
       config_widget_creator_t<QLineEdit> creator{log_form_widget, log_form_layout};

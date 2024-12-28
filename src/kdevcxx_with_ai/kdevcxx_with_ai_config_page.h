@@ -12,10 +12,11 @@ class kdevcxx_with_ai_config_page : public KDevelop::ConfigPage
 
 public:
   explicit kdevcxx_with_ai_config_page(KDevelop::IPlugin * plugin, QWidget * parent = nullptr);
+  ~kdevcxx_with_ai_config_page() override;
 
-  QString name() const override;
-  QString fullName() const override;
-  QIcon icon() const override;
+  auto name() const -> QString override;
+  auto fullName() const -> QString override;
+  auto icon() const -> QIcon override;
 
   void apply() override;
   void reset() override;

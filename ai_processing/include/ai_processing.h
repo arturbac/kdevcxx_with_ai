@@ -48,7 +48,7 @@ enum struct process_with_ai_error
 consteval auto adl_enum_bounds(process_with_ai_error)
   {
   using enum process_with_ai_error;
-  return simple_enum::adl_info{other_error, no_valid_command};
+  return simple_enum::adl_info{.first = other_error, .last = no_valid_command};
   }
 
 struct model_response_text_t

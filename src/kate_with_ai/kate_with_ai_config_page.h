@@ -12,10 +12,11 @@ class kate_with_ai_config_page : public KTextEditor::ConfigPage
 
 public:
   explicit kate_with_ai_config_page(QWidget * parent = nullptr);
+  ~kate_with_ai_config_page() override;
 
-  QString name() const override;
-  QString fullName() const override;
-  QIcon icon() const override;
+  [[nodiscard]] auto name() const -> QString override;
+  [[nodiscard]] auto fullName() const -> QString override;
+  [[nodiscard]] auto icon() const -> QIcon override;
 
   void apply() override;
   void reset() override;

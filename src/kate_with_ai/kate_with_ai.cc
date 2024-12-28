@@ -22,7 +22,7 @@ using aiprocess::warn;
 
 K_PLUGIN_FACTORY_WITH_JSON(kate_with_aiFactory, "kate_with_ai.json", registerPlugin<kate_with_ai>();)
 
-kate_with_ai::kate_with_ai(QObject * parent, QList<QVariant> const &) : KTextEditor::Plugin(parent)
+kate_with_ai::kate_with_ai(QObject * parent, QList<QVariant> const &) : KTextEditor::Plugin{parent}
   {
   log(aiprocess::level::info, "Starting plugin Kate_With_Ai");
   settings = aiprocess::load_app_settings<aiprocess::backend_type_e::kate>();
@@ -30,28 +30,28 @@ kate_with_ai::kate_with_ai(QObject * parent, QList<QVariant> const &) : KTextEdi
   info("Settings loaded");
   }
 
-kate_with_ai::~kate_with_ai() {}
+kate_with_ai::~kate_with_ai() = default;
 
 int kate_with_ai::configPages() const { return 1; }
 
 KTextEditor::ConfigPage * kate_with_ai::configPage(int number, QWidget * parent)
   {
   if(number == 0)
-    return new kate_with_ai_config_page(parent);
+    return new kate_with_ai_config_page{parent};
   return nullptr;  // No other pages to return
   }
 
 QObject * kate_with_ai::createView(KTextEditor::MainWindow * main_window)
   {
-  auto * view = new kate_with_ai_view(this, main_window);
+  auto * view = new kate_with_ai_view{this, main_window};
   return view;
   }
 
 kate_with_ai_view::kate_with_ai_view(kate_with_ai * plugin, KTextEditor::MainWindow * main_window) :
     plugin_{plugin},
-    main_window_(main_window)
+    main_window_{main_window}
   {
-  openai_process_action = new QAction(tr("Process with OpenAI"), this);
+  openai_process_action = new QAction{tr("Process with OpenAI"), this};
   connect(openai_process_action, &QAction::triggered, this, &kate_with_ai_view::on_process_with_ai);
 
   // Connect to the signal that notifies about the current view change
