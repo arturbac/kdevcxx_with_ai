@@ -9,6 +9,7 @@
 class kate_with_ai_config_page : public KTextEditor::ConfigPage
   {
   Q_OBJECT
+  Q_DISABLE_COPY_MOVE(kate_with_ai_config_page)
 
 public:
   explicit kate_with_ai_config_page(QWidget * parent = nullptr);

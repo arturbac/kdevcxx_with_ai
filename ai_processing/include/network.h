@@ -21,7 +21,7 @@ struct url_components
 
 // auto parse(std::string_view url) -> url_components;
 
-enum struct send_text_to_gpt_error
+enum struct send_text_to_gpt_error : std::uint8_t
   {
   network_error,
   other_exception,

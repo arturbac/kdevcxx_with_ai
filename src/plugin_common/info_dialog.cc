@@ -22,10 +22,6 @@ info_dialog::info_dialog(QString const & title, QString const & text, QWidget * 
   setLayout(layout);
   }
 
-<<<<<<< HEAD
 info_dialog::~info_dialog() = default;
-=======
-info_dialog::~info_dialog()
-{}
->>>>>>> parent of 11cd9f3 (Edit cmake to search locally at first for 3rd party libraries)
+
 

@@ -10,10 +10,11 @@
 class markdown_view : public QDockWidget
   {
   Q_OBJECT
+  Q_DISABLE_COPY_MOVE(markdown_view)
+
 public:
-  explicit markdown_view(QWidget * parent = nullptr) : QDockWidget(parent)
+  explicit markdown_view(QWidget * parent = nullptr) : QDockWidget{parent}, web_view{new QWebEngineView{this}}
     {
-    web_view = new QWebEngineView(this);
     setWidget(web_view);
     }
 

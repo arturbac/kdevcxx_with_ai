@@ -63,7 +63,7 @@ kate_with_ai_view::kate_with_ai_view(kate_with_ai * plugin, KTextEditor::MainWin
 
 void kate_with_ai_view::on_view_changed(KTextEditor::View * view) { init_view(view); }
 
-void kate_with_ai_view::init_view(KTextEditor::View * view)
+void kate_with_ai_view::init_view(KTextEditor::View * view) const
   {
   if(!view) [[unlikely]]
     return;

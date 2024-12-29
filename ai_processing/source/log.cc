@@ -34,7 +34,7 @@ static auto create_log_sink(std::string const & path, std::string const & filena
   return std::make_shared<spdlog::sinks::basic_file_sink_mt>(stralgo::stl::merge(path, '/', filename), false);
   }
 
-static std::shared_ptr<spdlog::logger> create_logger(std::string name, spdlog::sinks_init_list sinks)
+static std::shared_ptr<spdlog::logger> create_logger(std::string const & name, spdlog::sinks_init_list sinks)
   {
   auto logger = std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
   logger->flush_on(spdlog::level::err);
@@ -43,8 +43,8 @@ static std::shared_ptr<spdlog::logger> create_logger(std::string name, spdlog::s
 
 void setup_loggers(app_settings_t const & cfg)
   {
-  std::string app_path{get_config_path()};
-  std::string log_path{stralgo::stl::merge(app_path, '/', cfg.log_path)};
+  const std::string app_path{get_config_path()};
+  const std::string log_path{stralgo::stl::merge(app_path, '/', cfg.log_path)};
 
   console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
   console_sink->set_level(cfg.console_log_level);

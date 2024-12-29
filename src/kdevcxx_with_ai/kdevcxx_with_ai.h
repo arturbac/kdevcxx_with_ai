@@ -15,6 +15,7 @@
 class kdevcxx_with_ai : public KDevelop::IPlugin
   {
   Q_OBJECT
+  Q_DISABLE_COPY_MOVE(kdevcxx_with_ai)
   aiprocess::app_settings_t settings;
 
 public:

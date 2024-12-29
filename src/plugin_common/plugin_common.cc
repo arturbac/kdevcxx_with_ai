@@ -81,7 +81,7 @@ auto process_with_ai(KTextEditor::View & view, aiprocess::app_settings_t const &
 
   auto async_result = std::async(
     std::launch::async,
-    [](QString text) -> expected<aiprocess::model_response_text_t, aiprocess::process_with_ai_error>
+    [](QString const & text) -> expected<aiprocess::model_response_text_t, aiprocess::process_with_ai_error>
     { return aiprocess::process_with_ai(text.toStdString()); },
     selected_text
   );
@@ -140,20 +140,20 @@ namespace config_page
     QFormLayout * form_layout;
 
     template<callable_with_no_args_returning_void Callable>
-    auto operator()(QString const & label, Callable emit_changed) const -> WidgetType *
+    auto operator()(QString const & label, Callable const & emit_changed) const -> WidgetType *
       {
       auto * widget = new WidgetType(parent);
-      QObject::connect(widget, &WidgetType::textChanged, parent, emit_changed);
+      QObject::connect(widget, &WidgetType::textChanged, parent, std::move(emit_changed));
       form_layout->addRow(label, widget);
       return widget;
       }
 
     template<callable_with_no_args_returning_void Callable>
-    auto operator()(QString const & label, QStringList const & logLevels, Callable emit_changed) const -> WidgetType *
+    auto operator()(QString const & label, QStringList const & logLevels, Callable const & emit_changed) const -> WidgetType *
       {
       auto * widget = new WidgetType(parent);
       QObject::connect(
-        widget, static_cast<void (WidgetType::*)(int)>(&QComboBox::currentIndexChanged), parent, emit_changed
+        widget, static_cast<void (WidgetType::*)(int)>(&QComboBox::currentIndexChanged), parent, std::move(emit_changed)
       );
       form_layout->addRow(label, widget);
       widget->addItems(logLevels);
@@ -162,7 +162,7 @@ namespace config_page
     };
 
   template<aiprocess::backend_type_e backend>
-  auto construct(KTextEditor::ConfigPage & w, ui_t & ui, std::function<void()> emit_changed) -> void
+  auto construct(KTextEditor::ConfigPage & w, ui_t & ui, std::function<void()> const & emit_changed) -> void
     {
     aiprocess::debug("construct() called");
     auto * main_layout = new QVBoxLayout{&w};
@@ -190,7 +190,7 @@ namespace config_page
     auto * log_form_layout = new QFormLayout{log_form_widget};
 
       {
-      config_widget_creator_t<QLineEdit> creator{log_form_widget, log_form_layout};
+      const config_widget_creator_t<QLineEdit> creator{log_form_widget, log_form_layout};
       ui.log_path_edit = creator("Log Path:", emit_changed);
       ui.console_log_pattern_edit = creator("Console Log Pattern:", emit_changed);
       ui.general_log_pattern_edit = creator("General Log Pattern:", emit_changed);
@@ -199,8 +199,8 @@ namespace config_page
       }
 
       {
-      QStringList logLevels = {"trace", "debug", "info", "warn", "error", "critical"};
-      config_widget_creator_t<QComboBox> creator{log_form_widget, log_form_layout};
+      const QStringList logLevels = {"trace", "debug", "info", "warn", "error", "critical"};
+      const config_widget_creator_t<QComboBox> creator{log_form_widget, log_form_layout};
       ui.console_log_level_combo = creator("Console Log Pattern:", logLevels, emit_changed);
       ui.general_log_level_combo = creator("General Log Level:", logLevels, emit_changed);
       ui.snippet_log_level_combo = creator("Snippet Log Pattern:", logLevels, emit_changed);
@@ -261,7 +261,7 @@ namespace config_page
     {
     aiprocess::debug("reset() called");
       {
-      aiprocess::ai_settings_t settings = aiprocess::load_ai_settings();
+      const aiprocess::ai_settings_t settings = aiprocess::load_ai_settings();
       ui.language_rules->setPlainText(QString::fromStdString(settings.cxx_rules));
       ui.openai_key->setText(QString::fromStdString(settings.api_key));
       ui.open_ai_model->setText(QString::fromStdString(settings.gpt_model));
@@ -270,7 +270,7 @@ namespace config_page
       // Second page settings
 
       {
-      aiprocess::app_settings_t settings{aiprocess::load_app_settings<backend>()};
+      const aiprocess::app_settings_t settings{aiprocess::load_app_settings<backend>()};
       ui.log_path_edit->setText(QString::fromStdString(settings.log_path));
       ui.console_log_pattern_edit->setText(QString::fromStdString(settings.console_log_pattern));
       ui.general_log_pattern_edit->setText(QString::fromStdString(settings.general_log_pattern));
