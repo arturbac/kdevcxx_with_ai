@@ -3,7 +3,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 kcoreaddons_add_plugin(kate_with_ai # your plugin name here
     INSTALL_NAMESPACE "ktexteditor")
-    
+
 # add_library(kate_with_ai MODULE)
 target_sources(kate_with_ai PRIVATE
    kate_with_ai.cc
