@@ -22,6 +22,5 @@ info_dialog::info_dialog(QString const & title, QString const & text, QWidget * 
   setLayout(layout);
   }
 
-info_dialog::~info_dialog()
-{}
+info_dialog::~info_dialog() {}
 
