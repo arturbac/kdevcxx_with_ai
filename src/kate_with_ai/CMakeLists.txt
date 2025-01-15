@@ -15,11 +15,11 @@ target_compile_definitions(kate_with_ai PRIVATE TRANSLATION_DOMAIN="kate_with_ai
 target_link_libraries(kate_with_ai
   kdevcxx_with_ai::plugin_commn
   ${BASIC_LINK_FLAGS}
-  KF5::CoreAddons
-  KF5::I18n
-  KF5::TextEditor
+  KF6::CoreAddons
+  KF6::I18n
+  KF6::TextEditor
   )
 
 install(TARGETS kate_with_ai
-    LIBRARY DESTINATION lib64/qt5/plugins/ktexteditor
+    LIBRARY DESTINATION lib64/qt6/plugins/ktexteditor
 )

@@ -19,13 +19,13 @@ kate_with_ai_config_page::kate_with_ai_config_page(QWidget * parent) : KTextEdit
   );
   }
 
-void kate_with_ai_config_page::emit_changed() { emit changed(); }
+void kate_with_ai_config_page::emit_changed() { Q_EMIT changed(); }
 
 QString kate_with_ai_config_page::name() const { return i18n("OpenAI Configuration"); }
 
 QString kate_with_ai_config_page::fullName() const { return i18n("Configure Open AI Settings"); }
 
-QIcon kate_with_ai_config_page::icon() const { return QIcon::fromTheme("preferences-other"); }
+QIcon kate_with_ai_config_page::icon() const { return QIcon::fromTheme(QLatin1String("preferences-other")); }
 
 void kate_with_ai_config_page::apply() { kdevcxxai::config_page::apply<aiprocess::backend_type_e::kate>(ui); }
 

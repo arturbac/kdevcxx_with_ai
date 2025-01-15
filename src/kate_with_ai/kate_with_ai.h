@@ -9,7 +9,7 @@
 #include <ktexteditor/mainwindow.h>
 #include <ktexteditor/view.h>
 #include <kpluginfactory.h>
-#include <kpluginloader.h>
+#include <qpluginloader.h>
 
 #ifndef Q_MOC_RUN
 #include <aiprocess/app_settings.h>
@@ -40,7 +40,7 @@ class kate_with_ai_view : public QWidget
 public:
   explicit kate_with_ai_view(kate_with_ai * plugin, KTextEditor::MainWindow * main_window);
 
-private slots:
+private Q_SLOTS:
   void on_view_changed(KTextEditor::View * view);
   void on_context_menu_about_to_show(KTextEditor::View * view, QMenu * menu);
 

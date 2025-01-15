@@ -31,10 +31,9 @@ public:
   KDevelop::ConfigPage * configPage(int number, QWidget * parent) override;
   int configPages() const override;
 
-private slots:
+private Q_SLOTS:
 
   void on_process_with_ai();
   void on_first_time();
 
-private:
   };
