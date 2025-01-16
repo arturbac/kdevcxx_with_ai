@@ -223,10 +223,10 @@ namespace kdevcxxai
       aiprocess::debug("construct() end");
     }
 
-    template auto
-    construct<aiprocess::backend_type_e::kdevelop>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
-    template auto
-    construct<aiprocess::backend_type_e::kate>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>) -> void;
+  template auto construct<aiprocess::backend_type_e::kdevelop>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>)
+    -> void;
+  template auto construct<aiprocess::backend_type_e::kate>(KTextEditor::ConfigPage &, ui_t &, std::function<void()>)
+    -> void;
 
     template<aiprocess::backend_type_e backend>
     auto apply(ui_t & ui) -> void

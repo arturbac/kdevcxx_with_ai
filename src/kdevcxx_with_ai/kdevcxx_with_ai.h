@@ -32,10 +32,9 @@ public:
   [[nodiscard]] auto configPage(int number, QWidget * parent) ->KDevelop::ConfigPage* override;
   [[nodiscard]] auto configPages() const -> int override;
 
-private slots:
+private Q_SLOTS:
 
   void on_process_with_ai();
   void on_first_time();
 
-private:
   };

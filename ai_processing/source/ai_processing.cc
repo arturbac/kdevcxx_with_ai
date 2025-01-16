@@ -174,7 +174,7 @@ try
       command.messages[0].content,
       command.messages[1].content
     );
-    // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
+  // https://openai.com/blog/new-models-and-developer-products-announced-at-devday
 
 #ifndef ENABLE_CHAT_COMPLETIONS
   auto res{send_text_to_gpt(

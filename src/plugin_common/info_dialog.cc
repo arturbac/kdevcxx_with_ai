@@ -23,5 +23,3 @@ info_dialog::info_dialog(QString const & title, QString const & text, QWidget * 
   }
 
 info_dialog::~info_dialog() = default;
-
-

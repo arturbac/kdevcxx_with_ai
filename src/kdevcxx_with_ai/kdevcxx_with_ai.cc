@@ -5,7 +5,7 @@
 #include "kdevcxx_with_ai_config_page.h"
 
 #include <kpluginfactory.h>
-#include <kpluginloader.h>
+#include <qpluginloader.h>
 #include <info_dialog.h>
 #include <ktexteditor/application.h>
 #include <ktexteditor/mainwindow.h>
@@ -57,7 +57,7 @@ void kdevcxx_with_ai::on_first_time()
   aiprocess::warn("cxx_rules {}", aisettings.cxx_rules);
   if(aisettings.api_key.empty())
     {
-    info_dialog dialog("KDevCxx_With_Ai Initialization", kdevcxxai::fist_time_message);
+    info_dialog dialog(QStringLiteral("KDevCxx_With_Ai Initialization"), kdevcxxai::fist_time_message);
     dialog.exec();
     }
   }
@@ -81,7 +81,7 @@ void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString 
   process_with_ai_action->setShortcut(settings.activation_keys);
   info("Key for AI binded to {}", settings.activation_keys);
 
-  actions.addAction("process_with_ai", process_with_ai_action);
+  actions.addAction(QStringLiteral("process_with_ai"), process_with_ai_action);
   connect(process_with_ai_action, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);
   }
 
