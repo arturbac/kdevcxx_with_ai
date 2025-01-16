@@ -12,20 +12,22 @@
 #endif
 
 kdevcxx_with_ai_config_page::kdevcxx_with_ai_config_page(KDevelop::IPlugin * plugin, QWidget * parent) :
-    KDevelop::ConfigPage(plugin, nullptr, parent)
+    KDevelop::ConfigPage{plugin, nullptr, parent}
   {
   kdevcxxai::config_page::construct<aiprocess::backend_type_e::kdevelop>(
     *this, ui, std::bind(&kdevcxx_with_ai_config_page::emit_changed, this)
   );
   }
 
-void kdevcxx_with_ai_config_page::emit_changed() { Q_EMIT changed(); }
+kdevcxx_with_ai_config_page::~kdevcxx_with_ai_config_page() = default;
 
-QString kdevcxx_with_ai_config_page::name() const { return i18n("OpenAI Configuration"); }
+void kdevcxx_with_ai_config_page::emit_changed() { emit changed(); }
 
-QString kdevcxx_with_ai_config_page::fullName() const { return i18n("Configure Open AI Settings"); }
+auto kdevcxx_with_ai_config_page::name() const -> QString { return i18n("OpenAI Configuration"); }
 
-QIcon kdevcxx_with_ai_config_page::icon() const { return QIcon::fromTheme(QLatin1String("preferences-other")); }
+auto kdevcxx_with_ai_config_page::fullName() const -> QString { return i18n("Configure Open AI Settings"); }
+
+auto kdevcxx_with_ai_config_page::icon() const -> QIcon { return QIcon::fromTheme("preferences-other"); }
 
 void kdevcxx_with_ai_config_page::apply() { kdevcxxai::config_page::apply<aiprocess::backend_type_e::kdevelop>(ui); }
 

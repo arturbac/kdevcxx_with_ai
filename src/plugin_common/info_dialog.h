@@ -14,10 +14,11 @@ class QPushButton;
 class info_dialog : public QDialog
   {
   Q_OBJECT
+  Q_DISABLE_COPY_MOVE(info_dialog)
 
 public:
   explicit info_dialog(QString const & title, QString const & text, QWidget * parent = nullptr);
-  
+
   ~info_dialog() override;
   };
 

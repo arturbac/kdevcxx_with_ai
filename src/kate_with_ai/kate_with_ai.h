@@ -19,18 +19,19 @@ class kate_with_ai_view;
 class kate_with_ai : public KTextEditor::Plugin
   {
   Q_OBJECT
+  Q_DISABLE_COPY_MOVE(kate_with_ai)
   friend class kate_with_ai_view;
 
   aiprocess::app_settings_t settings;
 
 public:
-  explicit kate_with_ai(QObject * parent, QList<QVariant> const & = QList<QVariant>());
+  explicit kate_with_ai(QObject * parent, QList<QVariant> const & = QList<QVariant>{});
   ~kate_with_ai() override;
 
-  QObject * createView(KTextEditor::MainWindow * mainWindow) override;
+  [[nodiscard]] auto createView(KTextEditor::MainWindow * main_window) -> QObject * override;
 
-  int configPages() const override;
-  KTextEditor::ConfigPage * configPage(int number, QWidget * parent) override;
+  [[nodiscard]] auto configPages() const -> int override;
+  [[nodiscard]] auto configPage(int number, QWidget * parent) -> KTextEditor::ConfigPage* override;
   };
 
 class kate_with_ai_view : public QWidget
@@ -45,7 +46,7 @@ private Q_SLOTS:
   void on_context_menu_about_to_show(KTextEditor::View * view, QMenu * menu);
 
 private:
-  void init_view(KTextEditor::View * view);
+  void init_view(KTextEditor::View * view) const;
   void on_process_with_ai();
 
   kate_with_ai * plugin_;

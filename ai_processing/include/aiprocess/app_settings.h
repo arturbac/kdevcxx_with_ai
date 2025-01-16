@@ -13,7 +13,7 @@
 namespace aiprocess
   {
 
-enum struct backend_type_e
+enum struct backend_type_e : std::uint8_t
   {
   kate,
   kdevelop
@@ -22,7 +22,7 @@ enum struct backend_type_e
 consteval auto adl_enum_bounds(backend_type_e)
   {
   using enum backend_type_e;
-  return simple_enum::adl_info{kate, kdevelop};
+  return simple_enum::adl_info{.first = kate, .last = kdevelop};
   }
 
 inline constexpr string_view kdevcxx_with_ai_app_settings_file_name{"kdevcxx_with_ai_app_settings.json"};
@@ -30,7 +30,7 @@ inline constexpr string_view kate_with_ai_app_settings_file_name{"kate_with_ai_a
 
 inline constexpr string_view kdevcxx_with_ai_ai_settings_file_name{"kdevcxx_with_ai_ai_settings.json"};
 
-enum struct app_settings_version_e
+enum struct app_settings_version_e : std::uint8_t
   {
   v1 = 1,
 
@@ -40,7 +40,7 @@ enum struct app_settings_version_e
 consteval auto adl_enum_bounds(app_settings_version_e)
   {
   using enum app_settings_version_e;
-  return simple_enum::adl_info{v1, latest};
+  return simple_enum::adl_info{.first = v1, .last = latest};
   }
 
 struct app_settings_t
@@ -80,7 +80,7 @@ auto store_app_settings(app_settings_t const & cfg) noexcept -> bool;
 extern template auto store_app_settings<backend_type_e::kdevelop>(app_settings_t const & cfg) noexcept -> bool;
 extern template auto store_app_settings<backend_type_e::kate>(app_settings_t const & cfg) noexcept -> bool;
 
-enum struct ai_settings_version_e
+enum struct ai_settings_version_e : std::uint8_t
   {
   v1 = 1,
   v2,
@@ -90,7 +90,7 @@ enum struct ai_settings_version_e
 consteval auto adl_enum_bounds(ai_settings_version_e)
   {
   using enum ai_settings_version_e;
-  return simple_enum::adl_info{v1, latest};
+  return simple_enum::adl_info{.first = v1, .last = latest};
   }
 
 //

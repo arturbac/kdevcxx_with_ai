@@ -32,7 +32,7 @@ inline constexpr auto fist_time_message
     "negating the necessity for a KDevelop restart.\n"
     "Alterations to AI settings will be effective upon the next invocation.");
 
-enum class get_view_file_path_error
+enum class get_view_file_path_error : std::uint8_t
   {
   no_document,
   unhandled_exception

@@ -33,8 +33,7 @@ using aiprocess::warn;
 
 K_PLUGIN_FACTORY_WITH_JSON(cxx_with_gptFactory, "kdevcxx_with_ai.json", registerPlugin<kdevcxx_with_ai>();)
 
-kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) :
-  KDevelop::IPlugin(QStringLiteral("kdevcxx_with_ai"), parent, KPluginMetaData())
+kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, QVariantList const &) : KDevelop::IPlugin{"kdevcxx_with_ai", parent}
   {
   log(aiprocess::level::info, "Starting plugin KDevCxx_With_Ai");
   settings = aiprocess::load_app_settings<aiprocess::backend_type_e::kdevelop>();
@@ -76,7 +75,7 @@ void kdevcxx_with_ai::on_process_with_ai()
 
 void kdevcxx_with_ai::createActionsForMainWindow(Sublime::MainWindow *, QString &, KActionCollection & actions)
   {
-  QAction * process_with_ai_action = new QAction(QIcon(QStringLiteral(":/icons/my_icon.png")), tr("Process with OpenAI"), this);
+  auto * process_with_ai_action = new QAction{QIcon(":/icons/my_icon.png"), tr("Process with OpenAI"), this};
   process_with_ai_action->setToolTip(tr("Do something interesting with AI"));
 
   process_with_ai_action->setShortcut(settings.activation_keys);
@@ -95,7 +94,7 @@ auto kdevcxx_with_ai::contextMenuExtension(KDevelop::Context * context, QWidget 
     {
     info("Context menu registered for AI");
     // This is just an example; customize it based on your plugin's functionality
-    QAction * process_with_ai_action = new QAction(QIcon::fromTheme(QStringLiteral("system-run")), tr("Process with OpenAI"), parent);
+    auto * process_with_ai_action = new QAction{QIcon::fromTheme("system-run"), tr("Process with OpenAI"), parent};
     connect(process_with_ai_action, &QAction::triggered, this, &kdevcxx_with_ai::on_process_with_ai);
 
     // Add your action to the extension
@@ -110,13 +109,13 @@ int kdevcxx_with_ai::configPages() const { return 1; }
 auto kdevcxx_with_ai::configPage(int number, QWidget * parent) -> KDevelop::ConfigPage *
   {
   if(number == 0)
-    return new kdevcxx_with_ai_config_page(this, parent);
+    return new kdevcxx_with_ai_config_page{this, parent};
   return nullptr;  // No other pages to return
   }
 
 void kdevcxx_with_ai::unload() {}
 
-kdevcxx_with_ai::~kdevcxx_with_ai() {}
+kdevcxx_with_ai::~kdevcxx_with_ai() = default;
 
 #include "kdevcxx_with_ai.moc"
 // #include "moc_kdevcxx_with_ai.cpp"

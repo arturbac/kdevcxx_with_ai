@@ -12,20 +12,22 @@
 #include <aiprocess/log.h>
 #endif
 
-kate_with_ai_config_page::kate_with_ai_config_page(QWidget * parent) : KTextEditor::ConfigPage(parent)
+kate_with_ai_config_page::kate_with_ai_config_page(QWidget * parent) : KTextEditor::ConfigPage{parent}
   {
   kdevcxxai::config_page::construct<aiprocess::backend_type_e::kate>(
     *this, ui, std::bind(&kate_with_ai_config_page::emit_changed, this)
   );
   }
 
-void kate_with_ai_config_page::emit_changed() { Q_EMIT changed(); }
+kate_with_ai_config_page::~kate_with_ai_config_page() = default;
 
-QString kate_with_ai_config_page::name() const { return i18n("OpenAI Configuration"); }
+void kate_with_ai_config_page::emit_changed() { emit changed(); }
 
-QString kate_with_ai_config_page::fullName() const { return i18n("Configure Open AI Settings"); }
+auto kate_with_ai_config_page::name() const -> QString { return i18n("OpenAI Configuration"); }
 
-QIcon kate_with_ai_config_page::icon() const { return QIcon::fromTheme(QLatin1String("preferences-other")); }
+auto kate_with_ai_config_page::fullName() const -> QString { return i18n("Configure Open AI Settings"); }
+
+auto kate_with_ai_config_page::icon() const -> QIcon { return QIcon::fromTheme("preferences-other"); }
 
 void kate_with_ai_config_page::apply() { kdevcxxai::config_page::apply<aiprocess::backend_type_e::kate>(ui); }
 

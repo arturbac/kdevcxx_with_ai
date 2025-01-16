@@ -128,7 +128,7 @@ try
   {
   using enum process_with_ai_error;
 
-  aiprocess::ai_settings_t aisettings{aiprocess::load_ai_settings()};
+  const aiprocess::ai_settings_t aisettings{aiprocess::load_ai_settings()};
   info("checking api key ..");
   if(!is_valid_openai_bearer_key(aisettings.api_key)) [[unlikely]]
     return unexpected_error(invalid_api_key, "invalid key bailing out");
@@ -149,7 +149,7 @@ try
   if(command_text.empty()) [[unlikely]]
     return unexpected_error(no_valid_command, "command_text is empty nothing to do ..");
 
-  std::string code_text = user_data.substr(end_pos + command_end_delim.length());
+  const std::string code_text = user_data.substr(end_pos + command_end_delim.length());
 
 #ifndef ENABLE_CHAT_COMPLETIONS
   ai_command_json command{.prompt = fmt::format("[{},{}] {}", ai_rules, command_text, code_text)};

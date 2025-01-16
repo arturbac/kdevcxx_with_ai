@@ -21,7 +21,7 @@ enum struct change_directory_error
 consteval auto adl_enum_bounds(change_directory_error)
   {
   using enum change_directory_error;
-  return simple_enum::adl_info{unhandled_exception, filesystem_error};
+  return simple_enum::adl_info{.first = unhandled_exception, .last = filesystem_error};
   }
 
 [[nodiscard]]

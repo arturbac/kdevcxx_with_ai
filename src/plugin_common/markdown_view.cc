@@ -25,3 +25,4 @@ void markdown_view::load_markdown(QString const & html_content)
 //   return html_content;
 //   }
 
+markdown_view::~markdown_view() = default;
