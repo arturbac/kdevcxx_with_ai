@@ -1,14 +1,8 @@
 #----------------------------------------------------------------
 # boost-ext/ut
 #----------------------------------------------------------------
-CPMAddPackage(
-  ut
-  GITHUB_REPOSITORY arturbac/ut-ext
-  GIT_TAG           v2.0.1_2
-  EXCLUDE_FROM_ALL  YES
-)
-# find_package(ut REQUIRED)
 
+find_package(ut REQUIRED)
 
 add_engine_ut(parse_json_response_ut.cc)
 add_engine_ut(clang_format_ut.cc)
