@@ -75,6 +75,9 @@ find_or_add_package(fmt "fmtlib/fmt" 10.2.1 "")
 find_or_add_package(spdlog "gabime/spdlog" v1.14.0 "")
 
 # Boost
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+endif()
 find_package(Boost 1.66.0 REQUIRED COMPONENTS system thread)
 
 # OpenSSL
