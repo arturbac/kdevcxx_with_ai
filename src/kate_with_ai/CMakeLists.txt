@@ -20,3 +20,10 @@ target_link_libraries(kate_with_ai PRIVATE
   KF6::I18n
   KF6::TextEditor
 )
+
+# Suppress warnings from Qt/KDE plugin macros
+target_compile_options(kate_with_ai PRIVATE
+  -Wno-extra-semi
+  -Wno-missing-prototypes
+  -Wno-exit-time-destructors
+)
