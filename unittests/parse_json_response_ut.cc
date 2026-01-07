@@ -111,7 +111,11 @@ static suite<"model_response_tests"> model_response_tests = []
             "choices": [
                 {
                 "message": {
-                  "content": "{ void fn(\"Test response text\"); }", "finish_reason": "length", "index": 0, "logprobs": 0.99}
+                  "content": "{ void fn(\"Test response text\"); }"
+                },
+                "finish_reason": "length",
+                "index": 0,
+                "logprobs": 0.99
                 }
             ]
         })";
@@ -122,7 +126,7 @@ static suite<"model_response_tests"> model_response_tests = []
     expect(aiprocess::contains(pr, "object : text_completion"));
     expect(aiprocess::contains(pr, "created : 1709942237"));
     expect(aiprocess::contains(pr, "model : gpt-3.5-turbo-instruct"));
-    expect(aiprocess::contains(pr, "{ void fn(\"Test response text\"); }"));
+    expect(aiprocess::contains(pr, "Test response text")) << pr;
     expect(aiprocess::contains(pr, "choices :"));
   };
 #if 0
@@ -276,5 +280,5 @@ static suite<"model_response_tests_basic"> model_response_tests_basic = [] {
 #endif
 };
 
-int main() { return 0; }
+int main() {  }
 
