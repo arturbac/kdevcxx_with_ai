@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     qtwebengine5-dev \
     libkf5texteditor-dev \
     libkf5parts-dev \
+    libboost-ext-ut-dev \
     libboost-system-dev \
     libboost-thread-dev \
     libssl-dev \

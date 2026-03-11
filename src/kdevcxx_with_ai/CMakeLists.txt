@@ -17,6 +17,13 @@ target_link_libraries(kdevcxx_with_ai_p PRIVATE
     ${BASIC_LINK_FLAGS}
 )
 target_compile_options( kdevcxx_with_ai_p PRIVATE "-fexceptions")
+
+# Suppress warnings from Qt/KDE plugin macros
+target_compile_options(kdevcxx_with_ai_p PRIVATE
+  -Wno-extra-semi
+  -Wno-missing-prototypes
+  -Wno-exit-time-destructors
+)
 set_target_properties(kdevcxx_with_ai_p PROPERTIES OUTPUT_NAME "kdevcxx_with_ai")
 
 target_compile_definitions(kdevcxx_with_ai_p PRIVATE TRANSLATION_DOMAIN="kdevcxx_with_ai")

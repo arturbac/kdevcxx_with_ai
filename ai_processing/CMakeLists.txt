@@ -17,3 +17,9 @@ target_link_libraries(ai_processing PUBLIC
 )
 
 target_compile_options( ai_processing PUBLIC ${BUILD_CXX_FLAGS} ${BASIC_CXX_FLAGS})
+
+# Suppress warnings from Boost Beast about deprecated std::aligned_storage
+target_compile_options(ai_processing PRIVATE
+  $<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-declarations>
+  $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
+)

@@ -32,8 +32,8 @@ int main()
     // Since `expected` is hypothetical here, let's assume `result` is valid if no error is present.
     expect(fatal(result.has_value())) << "Expected a valid result";
 
-    // Assuming the echoed back text contains the original text
-    expect(result.value().find("\"test\": \"data\"") != std::string::npos)
+    // Assuming the echoed back text contains the original text (JSON may not have spaces)
+    expect(result.value().find("\"test\":\"data\"") != std::string::npos || result.value().find("\"test\": \"data\"") != std::string::npos)
       << result.value() << "\nThe response should contain the sent text\n";
   };
 
