@@ -6,7 +6,7 @@ include(cmake/CPM.cmake)
 project(kdevcxx_with_ai LANGUAGES CXX
     HOMEPAGE_URL "https://github.com/arturbac/kdevcxx_with_ai"
     DESCRIPTION "KDevelop client for Claude Code"
-    VERSION 1.0.1
+    VERSION 1.0.2
 )
 
 set(CMAKE_CXX_STANDARD 23)

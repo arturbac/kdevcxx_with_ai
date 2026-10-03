@@ -28,8 +28,8 @@ public:
   [[nodiscard]]
   auto listen() -> ide_protocol::expected_ec<quint16>;
 
-  /// sends to every authenticated client; a failure is logged
-  auto broadcast(std::string_view message) noexcept -> void;
+  /// sends to every authenticated client; callers run inside an event_guard
+  auto broadcast(std::string_view message) -> void;
 
 Q_SIGNALS:
   /// claude sent ide_connected, it is ready for notifications
@@ -42,5 +42,6 @@ private:
   std::string auth_token_;
   ide_protocol::ide_tools_t & tools_;
   QList<QWebSocket *> clients_;
+  ide_protocol::failure_streak_t unhandled_messages_;
   };
   }  // namespace ide_qt

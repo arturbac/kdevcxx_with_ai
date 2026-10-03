@@ -98,15 +98,21 @@ Exceptions are enabled for the whole project. The project's own code does not th
 - Qt and KDE report errors through return values, `error()`/`errorString()`, out parameters and error signals.
   The plugin checks them right after each call, converts them to error codes and logs the Qt text there.
 - Code called from the Qt event loop (slots, timers, socket callbacks) runs inside `ide_qt::event_guard`, which
-  logs and stops anything that escaped, so no exception passes through Qt.
+  logs and stops anything that escaped, so no exception passes through Qt. The guard sits at the event loop
+  entry, not in every function called from there.
+- A repeated failure is logged once per streak (`ide_protocol::failure_streak_t`): the first failure is reported,
+  the next ones are not until a success ends the streak.
 
 Where the error path ends:
 
 | Error | Result |
 |---|---|
-| a selection update cannot be built | logged, skipped; the next update replaces it |
+| a selection update cannot be built | logged once per streak, skipped; the next update replaces it |
+| a message from the claude CLI cannot be handled | logged once per streak |
 | no auth token, or no free port on 127.0.0.1 | IDE integration disabled with a warning in KDevelop; the Claude Code tool view still starts `claude` |
 | the lock file cannot be written | warning in KDevelop (once until a write succeeds again); retried when a project opens or closes |
 | a failure in a tool call | JSON-RPC error to the claude CLI |
+| the lock file cannot be removed when the plugin unloads | logged |
+| settings cannot be saved | logged; the new value applies until KDevelop exits |
 
 The plugin never ends the KDevelop process.

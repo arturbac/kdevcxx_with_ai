@@ -359,6 +359,18 @@ int main()
     expect(passed.error() == ide_protocol::make_error_code(ide_error_e::listen_failed));
   };
 
+  "failure_streak_reports_first_failure_only"_test = []
+  {
+    ide_protocol::failure_streak_t streak;
+    expect(streak.fail());
+    expect(not streak.fail());
+    expect(not streak.fail());
+    streak.succeed();
+    streak.succeed();
+    expect(streak.fail());
+    expect(not streak.fail());
+  };
+
   "error_codes_have_names"_test = []
   {
     auto const ec{ide_protocol::make_error_code(ide_protocol::ide_error_e::lock_file_failed)};

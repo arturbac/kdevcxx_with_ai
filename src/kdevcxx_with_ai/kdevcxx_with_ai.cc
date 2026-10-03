@@ -272,9 +272,9 @@ auto kdevcxx_with_ai::write_lock_file() -> void
       if(port_ == 0)
         return;
       if(auto written{try_write_lock_file()}; written)
-        lock_file_warned_ = false;
+        lock_file_failures_.succeed();
       // claude finds the port and the auth token only in the lock file; warn once per failure streak
-      else if(not std::exchange(lock_file_warned_, true))
+      else if(lock_file_failures_.fail())
         post_warning(i18n(
           "Claude Code cannot connect to KDevelop: the lock file %1 cannot be written (%2).",
           lock_path_,
@@ -324,8 +324,13 @@ auto kdevcxx_with_ai::try_write_lock_file() -> ide_protocol::expected_ec<void>
 
 auto kdevcxx_with_ai::remove_lock_file() -> void
   {
-  if(not lock_path_.isEmpty())
-    QFile::remove(std::exchange(lock_path_, {}));
+  if(lock_path_.isEmpty())
+    return;
+  // a stale lock file only points to a dead port, a log is enough; a never written file is not an error
+  if(QFile file{std::exchange(lock_path_, {})}; not file.remove() and file.exists())
+    qWarning(
+      "kdevcxx_with_ai: lock file %s not removed: %s", qPrintable(file.fileName()), qPrintable(file.errorString())
+    );
   }
 
 auto kdevcxx_with_ai::track_view(KDevelop::IDocument * document) -> void
@@ -363,10 +368,15 @@ auto kdevcxx_with_ai::send_selection() -> void
         {range.start().line(), range.start().column()},
         {range.end().line(), range.end().column()}
       )};
-      // a lost selection update is not critical, the next one replaces it
+      // a lost selection update is not critical, the next one replaces it; warn once per failure streak
       if(not message)
-        qWarning("kdevcxx_with_ai: selection not sent: %s", message.error().message().c_str());
-      else if(*message != last_selection_)
+        {
+        if(selection_failures_.fail())
+          qWarning("kdevcxx_with_ai: selection not sent: %s", message.error().message().c_str());
+        return;
+        }
+      selection_failures_.succeed();
+      if(*message != last_selection_)
         {
         last_selection_ = std::move(*message);
         server_->broadcast(last_selection_);
