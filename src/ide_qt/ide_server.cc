@@ -36,17 +36,11 @@ auto ide_server_t::listen() -> ide_protocol::expected_ec<quint16>
   return server_.serverPort();
   }
 
-auto ide_server_t::broadcast(std::string_view message) noexcept -> void
+auto ide_server_t::broadcast(std::string_view message) -> void
   {
-  std::ignore = event_guard(
-    "broadcast",
-    [&]
-    {
-      auto const text{to_qt(message)};
-      for(auto * client: std::as_const(clients_))
-        client->sendTextMessage(text);
-    }
-  );
+  auto const text{to_qt(message)};
+  for(auto * client: std::as_const(clients_))
+    client->sendTextMessage(text);
   }
 
 auto ide_server_t::on_new_connection() -> void
@@ -78,21 +72,22 @@ auto ide_server_t::on_new_connection() -> void
             auto const notification{ide_protocol::handle_message(
               to_std(message),
               tools_,
+              // runs inside this guard, or later from openDiff whose reply catches everything itself
               [guard](std::string reply)
               {
-                std::ignore = event_guard(
-                  "reply",
-                  [&]
-                  {
-                    if(guard)
-                      guard->sendTextMessage(to_qt(reply));
-                  }
-                );
+                if(guard)
+                  guard->sendTextMessage(to_qt(reply));
               }
             )};
             if(not notification)
-              qWarning("kdevcxx_with_ai: message not handled: %s", notification.error().message().c_str());
-            else if(*notification == "ide_connected")
+              {
+              // warn once per streak, a misbehaving client would flood the log
+              if(unhandled_messages_.fail())
+                qWarning("kdevcxx_with_ai: message not handled: %s", notification.error().message().c_str());
+              return;
+              }
+            unhandled_messages_.succeed();
+            if(*notification == "ide_connected")
               Q_EMIT client_connected();
           }
         );

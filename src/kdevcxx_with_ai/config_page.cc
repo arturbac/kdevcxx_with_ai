@@ -42,8 +42,11 @@ auto config_page_t::icon() const -> QIcon { return QIcon::fromTheme(u"utilities-
 
 auto config_page_t::apply() -> void
   {
-  group().writeEntry(config_claude_command, claude_command_->text());
-  group().sync();
+  auto config{group()};
+  config.writeEntry(config_claude_command, claude_command_->text());
+  // KConfig gives no reason; the value stays in memory for this session
+  if(not config.sync())
+    qWarning("kdevcxx_with_ai: settings not saved to %s", qPrintable(config.config()->name()));
   }
 
 auto config_page_t::reset() -> void { claude_command_->setText(read_claude_command()); }

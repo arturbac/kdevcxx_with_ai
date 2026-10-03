@@ -77,6 +77,7 @@ private:
   QHash<QString, QPointer<diff_dialog_t>> diffs_;
   QTimer selection_timer_;
   std::string last_selection_;
-  bool lock_file_warned_{};
+  ide_protocol::failure_streak_t lock_file_failures_;
+  ide_protocol::failure_streak_t selection_failures_;
   std::unique_ptr<claude_view_factory_t> view_factory_;
   };

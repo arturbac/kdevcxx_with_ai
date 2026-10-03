@@ -20,6 +20,7 @@
 #include <span>
 #include <system_error>
 #include <type_traits>
+#include <utility>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -85,6 +86,22 @@ auto catch_to_expected(function_type && fn) noexcept
       }
     }
   }
+
+/// Log once per state transition: of a streak of failures only the first one is reported, a success ends the streak.
+class failure_streak_t
+  {
+public:
+  /// records a failure; true only for the first failure of a streak
+  [[nodiscard]]
+  auto fail() noexcept -> bool
+    { return not std::exchange(failing_, true); }
+
+  /// records a success, the next failure starts a new streak
+  auto succeed() noexcept -> void { failing_ = false; }
+
+private:
+  bool failing_{};
+  };
 
 inline constexpr std::string_view auth_header{"x-claude-code-ide-authorization"};
 inline constexpr std::string_view ide_name{"KDevelop"};
