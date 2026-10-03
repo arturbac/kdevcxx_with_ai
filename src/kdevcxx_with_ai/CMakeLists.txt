@@ -8,9 +8,10 @@ kdevplatform_add_plugin(kdevcxx_with_ai_p
 )
 
 target_link_libraries(kdevcxx_with_ai_p PRIVATE
-    kdevcxx_with_ai::ide_protocol
+    kdevcxx_with_ai::ide_qt
     KDev::Interfaces
     KDev::Language
+    KDev::Sublime
     KF6::ConfigCore
     KF6::CoreAddons
     KF6::I18n

@@ -2,12 +2,28 @@
 
 ## Requirements
 
-- CMake 3.25 or newer (workflow presets), Ninja
+- CMake 3.31 or newer (required by glaze; workflow presets need 3.25), Ninja
 - A C++23 compiler: clang 19 or newer (CI builds with clang 19 and clang 23)
 - KDevelop 6 development files (KDevPlatform), KDE Frameworks 6 (Config, CoreAddons, I18n, Parts,
   TextEditor, XmlGui), Extra CMake Modules
 - Qt 6 with Qt WebSockets
-- Unit tests use [arturbac/ut-ext](https://github.com/arturbac/ut-ext), fetched with CPM
+- Boost headers (KDevPlatform needs them)
+
+Fetched with CPM during configure:
+
+| Library | Version | Used in |
+|---|---|---|
+| [glaze](https://github.com/stephenberry/glaze) | v9.0.0 | core: JSON |
+| [arturbac/simple_enum](https://github.com/arturbac/simple_enum) | `master` | core: enum bounds, `expected_ec` |
+| [arturbac/stralgo](https://github.com/arturbac/stralgo) | `master` | Qt adapter: UTF-8 ↔ UTF-16 |
+| [arturbac/small_vectors](https://github.com/arturbac/small_vectors) | `master` | dependency of stralgo, built static |
+| [arturbac/ut-ext](https://github.com/arturbac/ut-ext) | v2.0.1_9 | unit tests |
+
+During development the author's libraries track `master`.
+
+Exceptions are enabled for the whole project (`kde_enable_exceptions()`; KDE settings disable them by default),
+because the standard library throws (`std::bad_alloc`, `std::format_error`, ...). See
+[ide_integration.md](ide_integration.md#errors) for where they are handled.
 
 The oldest distribution with all of these is Debian 13 (KDevelop 24.12, KF6 6.13, Qt 6.8), which CI uses.
 
