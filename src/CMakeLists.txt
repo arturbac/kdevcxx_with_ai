@@ -1,2 +1,3 @@
 add_subdirectory(ide_protocol)
+add_subdirectory(ide_qt)
 add_subdirectory(kdevcxx_with_ai)

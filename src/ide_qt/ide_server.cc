@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: MIT
 
 #include "ide_server.h"
+#include "qt_bridge.h"
 
 #include <QPointer>
 #include <QWebSocket>
 
-namespace ide_protocol
+namespace ide_qt
   {
 using namespace Qt::StringLiterals;
 
-ide_server_t::ide_server_t(QString auth_token, std::vector<tool_t> tools, QObject * parent) :
+ide_server_t::ide_server_t(std::string auth_token, ide_protocol::ide_tools_t & tools, QObject * parent) :
     QObject{parent},
     server_{u"kdevcxx_with_ai"_s, QWebSocketServer::NonSecureMode},
     auth_token_{std::move(auth_token)},
-    tools_{std::move(tools)}
+    tools_{tools}
   { connect(&server_, &QWebSocketServer::newConnection, this, &ide_server_t::on_new_connection); }
 
 ide_server_t::~ide_server_t()
@@ -31,10 +32,11 @@ auto ide_server_t::listen() -> quint16
   return server_.serverPort();
   }
 
-auto ide_server_t::broadcast(QByteArray const & message) -> void
+auto ide_server_t::broadcast(std::string_view message) -> void
   {
+  auto const text{to_qt(message)};
   for(auto * client: std::as_const(clients_))
-    client->sendTextMessage(QString::fromUtf8(message));
+    client->sendTextMessage(text);
   }
 
 auto ide_server_t::on_new_connection() -> void
@@ -42,7 +44,8 @@ auto ide_server_t::on_new_connection() -> void
   while(auto * client{server_.nextPendingConnection()})
     {
     client->setParent(this);
-    if(client->request().rawHeader(auth_header) != auth_token_.toLatin1())
+    auto const header{client->request().rawHeader(QByteArrayView{ide_protocol::auth_header})};
+    if(header != QByteArrayView{auth_token_})
       {
       client->close(QWebSocketProtocol::CloseCodePolicyViolated, u"invalid auth token"_s);
       client->deleteLater();
@@ -58,16 +61,16 @@ auto ide_server_t::on_new_connection() -> void
       {
         // tools may reply after the client is gone (openDiff waits for the user)
         QPointer<QWebSocket> guard{client};
-        auto const notification{handle_message(
-          message.toUtf8(),
+        auto const notification{ide_protocol::handle_message(
+          to_std(message),
           tools_,
-          [guard](QByteArray const & reply)
+          [guard](std::string reply)
           {
             if(guard)
-              guard->sendTextMessage(QString::fromUtf8(reply));
+              guard->sendTextMessage(to_qt(reply));
           }
         )};
-        if(notification == u"ide_connected"_s)
+        if(notification == "ide_connected")
           Q_EMIT client_connected();
       }
     );
@@ -83,4 +86,4 @@ auto ide_server_t::on_new_connection() -> void
     );
     }
   }
-  }  // namespace ide_protocol
+  }  // namespace ide_qt

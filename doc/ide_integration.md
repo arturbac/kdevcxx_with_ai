@@ -1,8 +1,21 @@
 # Claude Code IDE integration
 
 The plugin implements the IDE side of the Claude Code IDE integration protocol: MCP (JSON-RPC 2.0) over a
-WebSocket. The core is in `src/ide_protocol` (Qt Core and Qt WebSockets only, covered by unit tests). The
-KDevelop glue is in `src/kdevcxx_with_ai`.
+WebSocket.
+
+## Code layout
+
+| Directory | Layer | Depends on |
+|---|---|---|
+| `src/ide_protocol` | core: JSON-RPC/MCP handling, message shapes, lock file, URIs; all strings UTF-8 | C++23, glaze, simple_enum (no Qt) |
+| `src/ide_qt` | Qt adapter: WebSocket transport (`ide_server_t`) and the UTF-8 ↔ UTF-16 conversion (`qt_bridge.h`, stralgo) | core, Qt Core, Qt WebSockets |
+| `src/kdevcxx_with_ai` | KDevelop plugin: tool view, diff dialog, settings, DUChain diagnostics | Qt adapter, KF6, KDevPlatform |
+
+The core declares `ide_protocol::ide_tools_t` (open a diff, close diff tabs, collect diagnostics) in standard
+types; the plugin implements it. Strings are converted between Qt and the core only at that boundary, once per
+call. The core target does not link Qt, so a Qt include in it fails to compile. Unit tests cover the core
+(`ide_protocol_ut`), the string conversion (`qt_bridge_ut`) and the transport with a real `QWebSocket` client
+(`ide_server_ut`).
 
 Only the parts the `claude` CLI uses are implemented (checked against Claude Code 2.1.283).
 

@@ -12,7 +12,7 @@
 #include <QTimer>
 #include <memory>
 
-namespace ide_protocol
+namespace ide_qt
   {
 class ide_server_t;
   }
@@ -25,8 +25,9 @@ class IDocument;
 class diff_dialog_t;
 class claude_view_factory_t;
 
-/// KDevelop client for Claude Code: tool view with claude in Konsole plus the IDE integration server
-class kdevcxx_with_ai : public KDevelop::IPlugin
+/// KDevelop client for Claude Code: tool view with claude in Konsole plus the IDE integration server.
+/// Implements the IDE side of the protocol tools; Qt <-> std conversion happens here.
+class kdevcxx_with_ai : public KDevelop::IPlugin, public ide_protocol::ide_tools_t
   {
   Q_OBJECT
 
@@ -50,15 +51,13 @@ public:
   [[nodiscard]]
   auto working_dir() const -> QString;
 
-private:
+  auto open_diff(ide_protocol::open_diff_args_t const & args, ide_protocol::diff_reply_t reply) -> void override;
+  auto close_tab(std::string_view tab_name) -> void override;
+  auto close_all_diff_tabs() -> std::size_t override;
   [[nodiscard]]
-  auto tools() -> std::vector<ide_protocol::tool_t>;
+  auto diagnostics(std::string_view file) -> ide_protocol::diagnostics_t override;
 
-  auto open_diff(QJsonObject const & arguments, ide_protocol::reply_t reply) -> void;
-  auto close_tab(QJsonObject const & arguments, ide_protocol::reply_t reply) -> void;
-  auto close_all_diff_tabs(QJsonObject const & arguments, ide_protocol::reply_t reply) -> void;
-  auto get_diagnostics(QJsonObject const & arguments, ide_protocol::reply_t reply) -> void;
-
+private:
   auto write_lock_file() -> void;
   auto remove_lock_file() -> void;
   auto track_view(KDevelop::IDocument * document) -> void;
@@ -66,12 +65,12 @@ private:
   auto send_selection() -> void;
   auto send_at_mention() -> void;
 
-  QString auth_token_;
-  ide_protocol::ide_server_t * server_{};
+  std::string auth_token_;
+  ide_qt::ide_server_t * server_{};
   quint16 port_{};
   QString lock_path_;
   QHash<QString, QPointer<diff_dialog_t>> diffs_;
   QTimer selection_timer_;
-  QByteArray last_selection_;
+  std::string last_selection_;
   std::unique_ptr<claude_view_factory_t> view_factory_;
   };

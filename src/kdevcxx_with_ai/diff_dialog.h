@@ -7,7 +7,7 @@
 
 #include <QDialog>
 
-/// openDiff: shows the proposed change as a unified diff, replies once with FILE_SAVED or DIFF_REJECTED
+/// openDiff: shows the proposed change as a unified diff, replies exactly once with the outcome
 class diff_dialog_t : public QDialog
   {
   Q_OBJECT
@@ -16,8 +16,8 @@ public:
   diff_dialog_t(
     QString const & tab_name,
     QString const & file_path,
-    QString new_contents,
-    ide_protocol::reply_t reply,
+    QString const & new_contents,
+    ide_protocol::diff_reply_t reply,
     QWidget * parent
   );
   ~diff_dialog_t() override;
@@ -26,8 +26,7 @@ public:
   auto close_tab() -> void;
 
 private:
-  auto send(QJsonObject const & result) -> void;
+  auto send(ide_protocol::diff_outcome_e outcome) -> void;
 
-  QString new_contents_;
-  ide_protocol::reply_t reply_;
+  ide_protocol::diff_reply_t reply_;
   };

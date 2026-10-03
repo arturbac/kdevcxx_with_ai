@@ -42,12 +42,11 @@ auto unified_diff(QString const & file_path, QString const & new_contents) -> QS
 diff_dialog_t::diff_dialog_t(
   QString const & tab_name,
   QString const & file_path,
-  QString new_contents,
-  ide_protocol::reply_t reply,
+  QString const & new_contents,
+  ide_protocol::diff_reply_t reply,
   QWidget * parent
 ) :
     QDialog{parent},
-    new_contents_{std::move(new_contents)},
     reply_{std::move(reply)}
   {
   setAttribute(Qt::WA_DeleteOnClose);
@@ -56,7 +55,7 @@ diff_dialog_t::diff_dialog_t(
   auto * layout{new QVBoxLayout{this}};
 
   auto * document{KTextEditor::Editor::instance()->createDocument(this)};
-  document->setText(unified_diff(file_path, new_contents_));
+  document->setText(unified_diff(file_path, new_contents));
   document->setHighlightingMode(u"Diff"_s);
   document->setModified(false);
   document->setReadWrite(false);
@@ -74,24 +73,22 @@ diff_dialog_t::diff_dialog_t(
     this,
     [this](int result)
     {
-      send(
-        result == QDialog::Accepted ? ide_protocol::file_saved_result(new_contents_)
-                                    : ide_protocol::text_result(QString::fromLatin1(ide_protocol::diff_rejected))
-      );
+      using enum ide_protocol::diff_outcome_e;
+      send(result == QDialog::Accepted ? accepted : rejected);
     }
   );
   }
 
-diff_dialog_t::~diff_dialog_t() { send(ide_protocol::text_result(QString::fromLatin1(ide_protocol::diff_rejected))); }
+diff_dialog_t::~diff_dialog_t() { send(ide_protocol::diff_outcome_e::rejected); }
 
 auto diff_dialog_t::close_tab() -> void
   {
-  send(ide_protocol::text_result(QString::fromLatin1(ide_protocol::tab_closed)));
+  send(ide_protocol::diff_outcome_e::tab_closed);
   close();
   }
 
-auto diff_dialog_t::send(QJsonObject const & result) -> void
+auto diff_dialog_t::send(ide_protocol::diff_outcome_e outcome) -> void
   {
   if(reply_)
-    std::exchange(reply_, nullptr)(result);
+    std::exchange(reply_, nullptr)(outcome);
   }

@@ -24,7 +24,7 @@ Protocol details: [doc/ide_integration.md](doc/ide_integration.md).
 
 ## Requirements
 
-KDevelop 6 with KDE Frameworks 6 and Qt 6 (Qt WebSockets), CMake 3.25+, clang 19+. At runtime: Konsole
+KDevelop 6 with KDE Frameworks 6 and Qt 6 (Qt WebSockets), CMake 3.31+, clang 19+. At runtime: Konsole
 (`konsolepart`), `diff` from diffutils and the [Claude Code CLI](https://code.claude.com/docs/en/overview)
 (`claude`). Details in [doc/build.md](doc/build.md).
 
