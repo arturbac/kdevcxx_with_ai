@@ -1,7 +1,6 @@
 {
     "KPlugin": {
         "Description": "KDevelop client for Claude Code: Konsole tool view and the Claude Code IDE integration (diffs, diagnostics, selection)",
-        "Id": "kdevcxx_with_ai",
         "Name": "Claude Code",
         "Authors": [ { "Name": "Artur Bać", "Email": "arturbac.ab@gmail.com" } ],
         "License": "MIT",

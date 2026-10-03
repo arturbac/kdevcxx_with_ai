@@ -43,8 +43,20 @@ The workflow configures, builds and runs the unit tests. The plugin is `build/cl
 
 ## Install
 
-`install_kdevplugin.sh` locates the KDevelop plugin directory (next to `kdevclangsupport.so`) and copies the
-plugin there. Restart KDevelop afterwards.
+`install_user.sh [build dir]` installs the plugin for the current user, without elevated privileges. The build
+dir defaults to `build/clang-release`.
+
+- It runs `cmake --install <build dir> --component kdevcxx_with_ai --prefix ~/.local`. The plugin lands in
+  `~/.local/<Qt plugin dir>/kdevplatform/<KDevelop plugin version>/`, e.g.
+  `~/.local/lib64/qt6/plugins/kdevplatform/66/kdevcxx_with_ai.so`.
+- It writes `~/.config/plasma-workspace/env/kdevcxx_with_ai.sh`. Plasma sources this file at login. It prepends
+  `~/.local/<Qt plugin dir>` to `QT_PLUGIN_PATH`, so every KDevelop started in the Plasma session finds the plugin.
+
+After the first install, log out of Plasma and back in once. After later installs, only restart KDevelop. A
+KDevelop started outside the Plasma session needs `QT_PLUGIN_PATH` set by hand. Rebuild and reinstall the plugin
+after every KDevelop upgrade, because it is built against the installed KDevPlatform.
+
+To uninstall, delete the two files listed above.
 
 ## Configuration
 
