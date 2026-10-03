@@ -95,7 +95,7 @@ auto make_auth_token() -> QString
   QRandomGenerator::system()->fillRange(words.data(), words.size());
   QString token;
   for(auto word: words)
-    token += u"%1"_s.arg(word, 8, 16, u'0');
+    token += u"%1"_s.arg(word, 8, 16, QChar{u'0'});
   return token;
   }
 
