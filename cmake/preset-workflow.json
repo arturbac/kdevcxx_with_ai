@@ -1,0 +1,76 @@
+{
+  "version": 6,
+  "include": [
+    "preset-test.json"
+  ],
+  "workflowPresets": [
+    {
+      "name": "clang-debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "clang-debug"
+        },
+        {
+          "type": "build",
+          "name": "clang-debug"
+        },
+        {
+          "type": "test",
+          "name": "clang-debug"
+        }
+      ]
+    },
+    {
+      "name": "clang-release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "clang-release"
+        },
+        {
+          "type": "build",
+          "name": "clang-release"
+        },
+        {
+          "type": "test",
+          "name": "clang-release"
+        }
+      ]
+    },
+    {
+      "name": "clang-release-test-asan",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "clang-release-test-asan"
+        },
+        {
+          "type": "build",
+          "name": "clang-release-test-asan"
+        },
+        {
+          "type": "test",
+          "name": "clang-release-test-asan"
+        }
+      ]
+    },
+    {
+      "name": "ci-clang",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "ci-clang"
+        },
+        {
+          "type": "build",
+          "name": "ci-clang"
+        },
+        {
+          "type": "test",
+          "name": "ci-clang"
+        }
+      ]
+    }
+  ]
+}

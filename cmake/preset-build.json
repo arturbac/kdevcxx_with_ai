@@ -1,0 +1,28 @@
+{
+  "version": 6,
+  "include": [
+    "preset-configure.json"
+  ],
+  "buildPresets": [
+    {
+      "name": "clang-debug",
+      "configurePreset": "clang-debug"
+    },
+    {
+      "name": "clang-release",
+      "configurePreset": "clang-release"
+    },
+    {
+      "name": "clang-release-test-asan",
+      "configurePreset": "clang-release-test-asan"
+    },
+    {
+      "name": "clang-release-time-trace",
+      "configurePreset": "clang-release-time-trace"
+    },
+    {
+      "name": "ci-clang",
+      "configurePreset": "ci-clang"
+    }
+  ]
+}

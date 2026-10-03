@@ -1,0 +1,76 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ "beta-1" ]
+    paths-ignore:
+      - 'README.md'
+      - 'doc/**'
+
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'doc/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  linux:
+    name: clang-${{ matrix.version }} ${{ matrix.preset }}
+    runs-on: ubuntu-24.04
+    # oldest distribution with KDevelop 6 (KF6) development files
+    container: debian:trixie
+    strategy:
+      fail-fast: false
+      matrix:
+        # 19: Debian 13 compiler, the oldest supported; 23: newest stable from apt.llvm.org
+        version: [ 19, 23 ]
+        preset: [ ci-clang ]
+    env:
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CCACHE_DIR: /github/home/.ccache
+      CPM_SOURCE_CACHE: /github/home/.cache/CPM
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+    - name: Install build dependencies
+      run: |
+        apt-get update -qq
+        apt-get install -y -qq --no-install-recommends \
+          ca-certificates git wget gnupg cmake ninja-build ccache \
+          extra-cmake-modules qt6-base-dev qt6-websockets-dev \
+          libkf6config-dev libkf6coreaddons-dev libkf6i18n-dev libkf6parts-dev libkf6texteditor-dev \
+          libkf6xmlgui-dev kdevelop-dev libboost-dev
+
+    - name: Install clang ${{ matrix.version }}
+      run: |
+        V=${{ matrix.version }}
+        if [ "$V" != 19 ]; then
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key > /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          echo "deb https://apt.llvm.org/trixie/ llvm-toolchain-trixie-$V main" > /etc/apt/sources.list.d/llvm.list
+          apt-get update -qq
+        fi
+        apt-get install -y -qq --no-install-recommends clang-$V
+        echo "/usr/lib/llvm-$V/bin" >> $GITHUB_PATH
+
+    - uses: actions/checkout@v4
+
+    - name: Compiler version
+      run: clang++ --version
+
+    - name: Cache CPM sources
+      uses: actions/cache@v4
+      with:
+        path: /github/home/.cache/CPM
+        key: cpm-${{ hashFiles('CMakeLists.txt', 'src/**/CMakeLists.txt', 'unittests/CMakeLists.txt', 'cmake/CPM.cmake') }}
+
+    - name: Cache ccache
+      uses: actions/cache@v4
+      with:
+        path: /github/home/.ccache
+        key: ccache-clang-${{ matrix.version }}-${{ matrix.preset }}-${{ github.sha }}
+        restore-keys: ccache-clang-${{ matrix.version }}-${{ matrix.preset }}-
+
+    - name: ${{ matrix.preset }}
+      run: cmake --workflow --preset="${{ matrix.preset }}"

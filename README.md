@@ -20,43 +20,24 @@ VS Code or JetBrains extensions.
 - **Send to Claude Code**: editor context menu action (also *Send Selection to Claude Code* in the shortcut
   settings) that adds the current file and selected lines to the Claude prompt.
 
-Protocol details are in [doc/ide_integration.md](doc/ide_integration.md).
+Protocol details: [doc/ide_integration.md](doc/ide_integration.md).
 
 ## Requirements
 
-- KDevelop 6 development files (KDevPlatform), KDE Frameworks 6 (Config, CoreAddons, I18n, Parts,
-  TextEditor, XmlGui), Extra CMake Modules
-- Qt 6 with Qt WebSockets
-- At runtime: Konsole (for `konsolepart`), `diff` from diffutils, and the
-  [Claude Code CLI](https://code.claude.com/docs/en/overview) (`claude`)
-- Unit tests use [arturbac/ut-ext](https://github.com/arturbac/ut-ext), fetched with CPM
+KDevelop 6 with KDE Frameworks 6 and Qt 6 (Qt WebSockets), CMake 3.25+, clang 19+. At runtime: Konsole
+(`konsolepart`), `diff` from diffutils and the [Claude Code CLI](https://code.claude.com/docs/en/overview)
+(`claude`). Details in [doc/build.md](doc/build.md).
 
-## Build
+## Build and install
 
 ```bash
 git clone https://github.com/arturbac/kdevcxx_with_ai.git
 cd kdevcxx_with_ai
-cmake --workflow --preset="clang-release"
+cmake --workflow --preset clang-release
 ```
 
-The workflow configures, builds and runs the unit tests. The plugin is `build/clang-release/bin/kdevcxx_with_ai.so`.
-
-## Install
-
-`install_user.sh [build dir]` installs the plugin for the current user, without elevated privileges. The build
-dir defaults to `build/clang-release`.
-
-- It runs `cmake --install <build dir> --component kdevcxx_with_ai --prefix ~/.local`. The plugin lands in
-  `~/.local/<Qt plugin dir>/kdevplatform/<KDevelop plugin version>/`, e.g.
-  `~/.local/lib64/qt6/plugins/kdevplatform/66/kdevcxx_with_ai.so`.
-- It writes `~/.config/plasma-workspace/env/kdevcxx_with_ai.sh`. Plasma sources this file at login. It prepends
-  `~/.local/<Qt plugin dir>` to `QT_PLUGIN_PATH`, so every KDevelop started in the Plasma session finds the plugin.
-
-After the first install, log out of Plasma and back in once. After later installs, only restart KDevelop. A
-KDevelop started outside the Plasma session needs `QT_PLUGIN_PATH` set by hand. Rebuild and reinstall the plugin
-after every KDevelop upgrade, because it is built against the installed KDevPlatform.
-
-To uninstall, delete the two files listed above.
+The plugin installs per user, without elevated privileges: [doc/install.md](doc/install.md). Presets,
+machine-specific presets and CI: [doc/build.md](doc/build.md).
 
 ## Configuration
 
