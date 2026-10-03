@@ -1,0 +1,56 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "cfg-clang",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "cfg-gcc",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "cfg-debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "cfg-release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "cfg-time-trace",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-ftime-trace -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "cfg-asan",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-ggdb -fvisibility=default -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize=undefined",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address -fsanitize=undefined",
+        "CMAKE_MODULE_LINKER_FLAGS": "-fsanitize=address -fsanitize=undefined"
+      }
+    },
+    {
+      "name": "cfg-build-dir",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": 6,
+  "include": [
+    "preset-build.json"
+  ],
+  "testPresets": [
+    {
+      "name": "clang-debug",
+      "configurePreset": "clang-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "clang-release",
+      "configurePreset": "clang-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "clang-release-test-asan",
+      "configurePreset": "clang-release-test-asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-clang",
+      "configurePreset": "ci-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "version": 6,
+  "include": [
+    "preset-options.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "clang-debug",
+      "inherits": [ "cfg-clang", "cfg-debug", "cfg-build-dir" ]
+    },
+    {
+      "name": "clang-release",
+      "inherits": [ "cfg-clang", "cfg-release", "cfg-build-dir" ]
+    },
+    {
+      "name": "clang-release-test-asan",
+      "inherits": [ "cfg-clang", "cfg-release", "cfg-asan", "cfg-build-dir" ]
+    },
+    {
+      "name": "clang-release-time-trace",
+      "inherits": [ "cfg-clang", "cfg-release", "cfg-time-trace", "cfg-build-dir" ]
+    },
+    {
+      "name": "ci-clang",
+      "inherits": [ "cfg-clang", "cfg-release", "cfg-build-dir" ]
+    }
+  ]
+}
