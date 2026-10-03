@@ -12,6 +12,8 @@ project(kdevcxx_with_ai LANGUAGES CXX
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+# no C++ modules; CMake 3.28+ would otherwise need clang-scan-deps for every C++20 target
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 # Prevent in-source builds
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
