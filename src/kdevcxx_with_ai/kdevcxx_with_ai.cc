@@ -6,6 +6,7 @@
 #include "config_page.h"
 #include "diff_dialog.h"
 
+#include <event_guard.h>
 #include <ide_server.h>
 #include <qt_bridge.h>
 
@@ -22,6 +23,7 @@
 #include <language/duchain/problem.h>
 #include <language/duchain/topducontext.h>
 #include <language/interfaces/editorcontext.h>
+#include <sublime/message.h>
 #include <util/path.h>
 
 #include <KActionCollection>
@@ -40,6 +42,7 @@
 K_PLUGIN_FACTORY_WITH_JSON(kdevcxx_with_ai_factory, "kdevcxx_with_ai.json", registerPlugin<kdevcxx_with_ai>();)
 
 using namespace Qt::StringLiterals;
+using ide_qt::event_guard;
 using ide_qt::to_qt;
 using ide_qt::to_std;
 
@@ -87,18 +90,23 @@ kdevcxx_with_ai::kdevcxx_with_ai(QObject * parent, KPluginMetaData const & meta_
     KDevelop::IPlugin{u"kdevcxx_with_ai"_s, parent, meta_data},
     view_factory_{std::make_unique<claude_view_factory_t>(this)}
   {
+  // a failure here disables only the IDE integration, the Claude Code tool view still works
   if(auto token{ide_protocol::make_auth_token()}; not token)
-    qWarning("kdevcxx_with_ai: no auth token: %s", token.error().message().c_str());
+    post_warning(i18n(
+      "Claude Code IDE integration is disabled: no auth token (%1).", QString::fromStdString(token.error().message())
+    ));
   else
     {
     auth_token_ = std::move(*token);
     server_ = new ide_qt::ide_server_t{auth_token_, *this, this};
-    port_ = server_->listen();
+    if(auto port{server_->listen()}; not port)
+      post_warning(i18n("Claude Code IDE integration is disabled: cannot listen on 127.0.0.1."));
+    else
+      {
+      port_ = *port;
+      write_lock_file();
+      }
     }
-  if(port_ == 0)
-    qWarning("kdevcxx_with_ai: cannot listen on 127.0.0.1, Claude Code IDE integration is disabled");
-  else
-    write_lock_file();
 
   auto * projects{KDevelop::ICore::self()->projectController()};
   connect(projects, &KDevelop::IProjectController::projectOpened, this, &kdevcxx_with_ai::write_lock_file);
@@ -217,7 +225,30 @@ auto kdevcxx_with_ai::diagnostics(std::string_view file) -> ide_protocol::diagno
   }
 
 auto kdevcxx_with_ai::launch_command() const -> QString
-  { return to_qt(ide_protocol::claude_launch_command(port_, to_std(read_claude_command()))); }
+  {
+  auto const claude_command{read_claude_command()};
+  if(port_ == 0)
+    return claude_command;
+  if(auto command{ide_protocol::claude_launch_command(port_, to_std(claude_command))}; command)
+    return to_qt(*command);
+  else
+    {
+    qWarning("kdevcxx_with_ai: claude starts without the IDE integration: %s", command.error().message().c_str());
+    return claude_command;
+    }
+  }
+
+auto kdevcxx_with_ai::post_warning(QString const & text) -> void
+  {
+  qWarning("kdevcxx_with_ai: %s", qPrintable(text));
+  // plugins load before the main window exists
+  QTimer::singleShot(
+    0,
+    this,
+    [text]
+    { KDevelop::ICore::self()->uiController()->postMessage(new Sublime::Message{text, Sublime::Message::Warning}); }
+  );
+  }
 
 auto kdevcxx_with_ai::working_dir() const -> QString
   {
@@ -234,29 +265,61 @@ auto kdevcxx_with_ai::working_dir() const -> QString
 
 auto kdevcxx_with_ai::write_lock_file() -> void
   {
-  if(port_ == 0)
-    return;
+  std::ignore = event_guard(
+    "write_lock_file",
+    [this]
+    {
+      if(port_ == 0)
+        return;
+      if(auto written{try_write_lock_file()}; written)
+        lock_file_warned_ = false;
+      // claude finds the port and the auth token only in the lock file; warn once per failure streak
+      else if(not std::exchange(lock_file_warned_, true))
+        post_warning(i18n(
+          "Claude Code cannot connect to KDevelop: the lock file %1 cannot be written (%2).",
+          lock_path_,
+          QString::fromStdString(written.error().message())
+        ));
+    }
+  );
+  }
+
+auto kdevcxx_with_ai::try_write_lock_file() -> ide_protocol::expected_ec<void>
+  {
+  using ide_protocol::ide_error_e;
+  auto const failed{[this](QString const & reason)
+                    {
+                      qWarning("kdevcxx_with_ai: lock file %s: %s", qPrintable(lock_path_), qPrintable(reason));
+                      return ide_protocol::unexpected_ec{ide_protocol::make_error_code(ide_error_e::lock_file_failed)};
+                    }};
+
   std::vector<std::string> folders;
   for(auto const * project: KDevelop::ICore::self()->projectController()->projects())
     folders.push_back(to_std(project->path().toLocalFile()));
-
-  QDir const dir{
-    to_qt(ide_protocol::lock_dir(to_std(qEnvironmentVariable("CLAUDE_CONFIG_DIR")), to_std(QDir::homePath())).string())
+  auto const dir_path{
+    ide_protocol::lock_dir(to_std(qEnvironmentVariable("CLAUDE_CONFIG_DIR")), to_std(QDir::homePath()))
   };
-  dir.mkpath(u"."_s);
-  lock_path_ = dir.filePath(u"%1.lock"_s.arg(port_));
-  QFile file{lock_path_};
-  // the file holds the auth token, keep it private
-  if(
-    not file.open(QIODevice::WriteOnly | QIODevice::Truncate)
-    or not file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)
-  )
-    {
-    qWarning("kdevcxx_with_ai: cannot write %s", qPrintable(lock_path_));
-    return;
-    }
+  if(not dir_path)
+    return ide_protocol::unexpected_ec{dir_path.error()};
   auto const json{ide_protocol::lock_file_json(QCoreApplication::applicationPid(), folders, auth_token_)};
-  file.write(json.data(), static_cast<qint64>(json.size()));
+  if(not json)
+    return ide_protocol::unexpected_ec{json.error()};
+
+  QDir const dir{to_qt(dir_path->string())};
+  lock_path_ = dir.filePath(u"%1.lock"_s.arg(port_));
+  if(not dir.mkpath(u"."_s))
+    return failed(u"cannot create %1"_s.arg(dir.path()));
+  QFile file{lock_path_};
+  if(not file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    return failed(file.errorString());
+  // the file holds the auth token, keep it private
+  if(not file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner))
+    return failed(file.errorString());
+  if(file.write(json->data(), static_cast<qint64>(json->size())) != static_cast<qint64>(json->size()))
+    return failed(file.errorString());
+  if(not file.flush())
+    return failed(file.errorString());
+  return {};
   }
 
 auto kdevcxx_with_ai::remove_lock_file() -> void
@@ -267,6 +330,7 @@ auto kdevcxx_with_ai::remove_lock_file() -> void
 
 auto kdevcxx_with_ai::track_view(KDevelop::IDocument * document) -> void
   {
+  // only Qt calls here, which do not throw
   if(auto * view{document ? document->activeTextView() : nullptr}; view)
     {
     connect(
@@ -283,44 +347,67 @@ auto kdevcxx_with_ai::schedule_selection() -> void { selection_timer_.start(); }
 
 auto kdevcxx_with_ai::send_selection() -> void
   {
-  auto const * view{KDevelop::ICore::self()->documentController()->activeTextDocumentView()};
-  if(not view or not view->document()->url().isLocalFile())
-    return;
-  auto const range{
-    view->selection() ? view->selectionRange() : KTextEditor::Range{view->cursorPosition(), view->cursorPosition()}
-  };
-  auto message{ide_protocol::selection_changed(
-    to_std(view->document()->url().toLocalFile()),
-    to_std(view->selectionText()),
-    {range.start().line(), range.start().column()},
-    {range.end().line(), range.end().column()}
-  )};
-  if(message == last_selection_)
-    return;
-  last_selection_ = std::move(message);
-  if(server_)
-    server_->broadcast(last_selection_);
+  std::ignore = event_guard(
+    "send_selection",
+    [this]
+    {
+      auto const * view{KDevelop::ICore::self()->documentController()->activeTextDocumentView()};
+      if(not server_ or not view or not view->document()->url().isLocalFile())
+        return;
+      auto const range{
+        view->selection() ? view->selectionRange() : KTextEditor::Range{view->cursorPosition(), view->cursorPosition()}
+      };
+      auto message{ide_protocol::selection_changed(
+        to_std(view->document()->url().toLocalFile()),
+        to_std(view->selectionText()),
+        {range.start().line(), range.start().column()},
+        {range.end().line(), range.end().column()}
+      )};
+      // a lost selection update is not critical, the next one replaces it
+      if(not message)
+        qWarning("kdevcxx_with_ai: selection not sent: %s", message.error().message().c_str());
+      else if(*message != last_selection_)
+        {
+        last_selection_ = std::move(*message);
+        server_->broadcast(last_selection_);
+        }
+    }
+  );
   }
 
 auto kdevcxx_with_ai::send_at_mention() -> void
   {
-  auto const * view{KDevelop::ICore::self()->documentController()->activeTextDocumentView()};
-  if(not view or not view->document()->url().isLocalFile())
-    return;
-  std::optional<int> line_start;
-  std::optional<int> line_end;
-  if(view->selection())
+  std::ignore = event_guard(
+    "send_at_mention",
+    [this]
     {
-    auto const range{view->selectionRange()};
-    line_start = range.start().line();
-    // a selection ending at column 0 does not include that line
-    line_end = range.end().column() == 0 and range.end().line() > range.start().line() ? range.end().line() - 1
-                                                                                       : range.end().line();
+      auto const * view{KDevelop::ICore::self()->documentController()->activeTextDocumentView()};
+      if(not view or not view->document()->url().isLocalFile())
+        return;
+      std::optional<int> line_start;
+      std::optional<int> line_end;
+      if(view->selection())
+        {
+        auto const range{view->selectionRange()};
+        line_start = range.start().line();
+        // a selection ending at column 0 does not include that line
+        line_end = range.end().column() == 0 and range.end().line() > range.start().line() ? range.end().line() - 1
+                                                                                           : range.end().line();
+        }
+      if(server_)
+        {
+        auto const message{
+          ide_protocol::at_mentioned(to_std(view->document()->url().toLocalFile()), line_start, line_end)
+        };
+        if(message)
+          server_->broadcast(*message);
+        else
+          post_warning(i18n("Sending to Claude Code failed (%1).", QString::fromStdString(message.error().message())));
+        }
+      KDevelop::ICore::self()->uiController()->findToolView(
+        tool_view_title(), view_factory_.get(), KDevelop::IUiController::CreateAndRaise
+      );
     }
-  if(server_)
-    server_->broadcast(ide_protocol::at_mentioned(to_std(view->document()->url().toLocalFile()), line_start, line_end));
-  KDevelop::ICore::self()->uiController()->findToolView(
-    tool_view_title(), view_factory_.get(), KDevelop::IUiController::CreateAndRaise
   );
   }
 

@@ -24,11 +24,12 @@ public:
   ide_server_t(std::string auth_token, ide_protocol::ide_tools_t & tools, QObject * parent = nullptr);
   ~ide_server_t() override;
 
-  /// listens on a free port, returns it or 0 on failure
+  /// listens on a free port of 127.0.0.1; the reason of a failure is logged
   [[nodiscard]]
-  auto listen() -> quint16;
+  auto listen() -> ide_protocol::expected_ec<quint16>;
 
-  auto broadcast(std::string_view message) -> void;
+  /// sends to every authenticated client; a failure is logged
+  auto broadcast(std::string_view message) noexcept -> void;
 
 Q_SIGNALS:
   /// claude sent ide_connected, it is ready for notifications

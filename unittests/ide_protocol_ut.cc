@@ -8,6 +8,9 @@
 #include <glaze/glaze.hpp>
 
 #include <algorithm>
+#include <new>
+#include <stdexcept>
+#include <system_error>
 #include <string>
 #include <vector>
 
@@ -61,8 +64,11 @@ struct session_t
 
   auto operator()(std::string_view message) -> void
     {
-    notification
-      = ide_protocol::handle_message(message, tools, [this](std::string reply) { sent.push_back(parse(reply)); });
+    auto const handled{
+      ide_protocol::handle_message(message, tools, [this](std::string reply) { sent.push_back(parse(reply)); })
+    };
+    expect(handled.has_value());
+    notification = handled.value_or(std::string{});
     }
   };
 
@@ -94,14 +100,14 @@ int main()
 
   "lock_dir_prefers_claude_config_dir"_test = []
   {
-    expect(eq(ide_protocol::lock_dir("/home/u/.claude-x", "/home/u").string(), "/home/u/.claude-x/ide"sv));
-    expect(eq(ide_protocol::lock_dir("", "/home/u").string(), "/home/u/.claude/ide"sv));
+    expect(eq(ide_protocol::lock_dir("/home/u/.claude-x", "/home/u").value().string(), "/home/u/.claude-x/ide"sv));
+    expect(eq(ide_protocol::lock_dir("", "/home/u").value().string(), "/home/u/.claude/ide"sv));
   };
 
   "lock_file_fields"_test = []
   {
     std::vector<std::string> const folders{"/src/a"};
-    auto lock = parse(ide_protocol::lock_file_json(42, folders, "tok"));
+    auto lock = parse(ide_protocol::lock_file_json(42, folders, "tok").value());
     expect(eq(lock["pid"].as<int>(), 42));
     expect(eq(lock["workspaceFolders"].get_array()[0].get_string(), "/src/a"sv));
     expect(eq(lock["ideName"].get_string(), "KDevelop"sv));
@@ -112,22 +118,22 @@ int main()
   "launch_command_sets_port"_test = []
   {
     expect(eq(
-      ide_protocol::claude_launch_command(1234, "claude --model opus"),
+      ide_protocol::claude_launch_command(1234, "claude --model opus").value(),
       "env CLAUDE_CODE_SSE_PORT=1234 ENABLE_IDE_INTEGRATION=true claude --model opus"sv
     ));
   };
 
   "uri_round_trip"_test = []
   {
-    expect(eq(ide_protocol::file_uri("/a b/c.cc"), "file:///a%20b/c.cc"sv));
-    expect(eq(ide_protocol::file_uri("/x/ż#1%.cc"), "file:///x/%C5%BC%231%25.cc"sv));
-    expect(eq(ide_protocol::file_uri("/k-_.~!$&'()*+,;=:@"), "file:///k-_.~!$&'()*+,;=:@"sv));
-    expect(eq(ide_protocol::uri_to_path("file:///a%20b/c.cc"), "/a b/c.cc"sv));
-    expect(eq(ide_protocol::uri_to_path(ide_protocol::file_uri("/x/ż#1%.cc")), "/x/ż#1%.cc"sv));
-    expect(eq(ide_protocol::uri_to_path("file://localhost/p/a.cc"), "/p/a.cc"sv));
-    expect(eq(ide_protocol::uri_to_path("file:/p/a.cc"), "/p/a.cc"sv));
-    expect(eq(ide_protocol::uri_to_path("file:///bad%2"), "/bad%2"sv));
-    expect(eq(ide_protocol::uri_to_path("/plain/path.cc"), "/plain/path.cc"sv));
+    expect(eq(ide_protocol::file_uri("/a b/c.cc").value(), "file:///a%20b/c.cc"sv));
+    expect(eq(ide_protocol::file_uri("/x/ż#1%.cc").value(), "file:///x/%C5%BC%231%25.cc"sv));
+    expect(eq(ide_protocol::file_uri("/k-_.~!$&'()*+,;=:@").value(), "file:///k-_.~!$&'()*+,;=:@"sv));
+    expect(eq(ide_protocol::uri_to_path("file:///a%20b/c.cc").value(), "/a b/c.cc"sv));
+    expect(eq(ide_protocol::uri_to_path(ide_protocol::file_uri("/x/ż#1%.cc").value()).value(), "/x/ż#1%.cc"sv));
+    expect(eq(ide_protocol::uri_to_path("file://localhost/p/a.cc").value(), "/p/a.cc"sv));
+    expect(eq(ide_protocol::uri_to_path("file:/p/a.cc").value(), "/p/a.cc"sv));
+    expect(eq(ide_protocol::uri_to_path("file:///bad%2").value(), "/bad%2"sv));
+    expect(eq(ide_protocol::uri_to_path("/plain/path.cc").value(), "/plain/path.cc"sv));
   };
 
   "initialize_echoes_protocol_version"_test = []
@@ -271,7 +277,7 @@ int main()
 
   "selection_and_mention_notifications"_test = []
   {
-    auto sel = parse(ide_protocol::selection_changed("/p/a.cc", "int x;", {2, 0}, {2, 6}));
+    auto sel = parse(ide_protocol::selection_changed("/p/a.cc", "int x;", {2, 0}, {2, 6}).value());
     expect(eq(sel["method"].get_string(), "selection_changed"sv));
     expect(not sel.contains("id"));
     auto & params{sel["params"]};
@@ -280,14 +286,85 @@ int main()
     expect(eq(params["fileUrl"].get_string(), "file:///p/a.cc"sv));
     expect(eq(params["selection"]["end"]["character"].as<int>(), 6));
     expect(not params["selection"]["isEmpty"].get_boolean());
-    auto empty = parse(ide_protocol::selection_changed("/p/a.cc", "", {4, 1}, {4, 1}));
+    auto empty = parse(ide_protocol::selection_changed("/p/a.cc", "", {4, 1}, {4, 1}).value());
     expect(empty["params"]["selection"]["isEmpty"].get_boolean());
 
-    auto mention = parse(ide_protocol::at_mentioned("/p/a.cc", 3, 7));
+    auto mention = parse(ide_protocol::at_mentioned("/p/a.cc", 3, 7).value());
     expect(eq(mention["params"]["lineStart"].as<int>(), 3));
     expect(eq(mention["params"]["lineEnd"].as<int>(), 7));
-    auto whole_file = parse(ide_protocol::at_mentioned("/p/a.cc", {}, {}));
+    auto whole_file = parse(ide_protocol::at_mentioned("/p/a.cc", {}, {}).value());
     expect(not whole_file["params"].contains("lineStart"));
     expect(eq(whole_file["params"]["filePath"].get_string(), "/p/a.cc"sv));
+  };
+
+  "errors_from_tools_end_as_internal_error"_test = []
+  {
+    struct throwing_tools_t final : ide_protocol::ide_tools_t
+      {
+      auto open_diff(ide_protocol::open_diff_args_t const &, ide_protocol::diff_reply_t) -> void override
+        { throw std::bad_alloc{}; }
+
+      auto close_tab(std::string_view) -> void override { throw std::runtime_error{"boom"}; }
+
+      auto close_all_diff_tabs() -> std::size_t override { return 0; }
+
+      auto diagnostics(std::string_view) -> ide_protocol::diagnostics_t override
+        { throw std::system_error{std::make_error_code(std::errc::permission_denied)}; }
+      };
+
+    throwing_tools_t tools;
+    std::vector<glz::generic> sent;
+    auto const run{[&](std::string const & message)
+                   {
+                     auto const handled{ide_protocol::handle_message(
+                       message, tools, [&sent](std::string reply) { sent.push_back(parse(reply)); }
+                     )};
+                     expect(handled.has_value());
+                   }};
+    run(call(1, "close_tab", R"({"tab_name":"t"})"));
+    run(call(2, "openDiff", R"({"tab_name":"t"})"));
+    run(call(3, "getDiagnostics"));
+    expect(eq(sent.size(), 3uz) >> fatal);
+    for(auto & response: sent)
+      expect(eq(response["error"]["code"].as<int>(), -32603));
+    expect(eq(sent[0]["error"]["message"].get_string(), "boom"sv));
+    expect(eq(sent[1]["id"].as<int>(), 2));
+    expect(not sent[2]["error"]["message"].get_string().empty());
+  };
+
+  "catch_to_expected_maps_exceptions"_test = []
+  {
+    using ide_protocol::ide_error_e;
+    auto const oom{ide_protocol::catch_to_expected([]() -> int { throw std::bad_alloc{}; })};
+    expect(not oom.has_value() >> fatal);
+    expect(oom.error() == ide_protocol::make_error_code(ide_error_e::out_of_memory));
+
+    auto const sys{ide_protocol::catch_to_expected(
+      []() -> int { throw std::system_error{std::make_error_code(std::errc::no_such_file_or_directory)}; }
+    )};
+    expect(not sys.has_value() >> fatal);
+    expect(sys.error() == std::make_error_code(std::errc::no_such_file_or_directory));
+
+    auto const other{ide_protocol::catch_to_expected([] { throw 42; })};
+    expect(not other.has_value() >> fatal);
+    expect(other.error() == ide_protocol::make_error_code(ide_error_e::internal_error));
+
+    auto const fine{ide_protocol::catch_to_expected([] { return 7; })};
+    expect(eq(fine.value(), 7));
+    // a function already returning expected keeps its type and error
+    auto const passed{ide_protocol::catch_to_expected(
+      []() -> ide_protocol::expected_ec<int>
+      { return ide_protocol::unexpected_ec{ide_protocol::make_error_code(ide_error_e::listen_failed)}; }
+    )};
+    expect(passed.error() == ide_protocol::make_error_code(ide_error_e::listen_failed));
+  };
+
+  "error_codes_have_names"_test = []
+  {
+    auto const ec{ide_protocol::make_error_code(ide_protocol::ide_error_e::lock_file_failed)};
+    expect(static_cast<bool>(ec));
+    expect(not ec.message().empty());
+    expect(not std::string_view{ec.category().name()}.empty());
+    expect(not ide_protocol::make_error_code(ide_protocol::ide_error_e::ok));
   };
   }

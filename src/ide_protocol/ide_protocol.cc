@@ -4,10 +4,12 @@
 #include "ide_protocol.h"
 
 #include <glaze/glaze.hpp>
+#include <simple_enum/generic_error_category_impl.hpp>
 
 #include <algorithm>
 #include <array>
 #include <cerrno>
+#include <cstdio>
 #include <format>
 #include <map>
 #include <unistd.h>
@@ -21,7 +23,8 @@ namespace json
     {
     parse_error = -32700,
     method_not_found = -32601,
-    invalid_params = -32602
+    invalid_params = -32602,
+    internal_error = -32603
     };
 
   struct text_content_t
@@ -232,6 +235,100 @@ namespace
   // messages may come as views into larger buffers, unknown keys are allowed by the protocol
   inline constexpr glz::opts read_opts{.null_terminated = false, .error_on_unknown_keys = false};
 
+  [[nodiscard]]
+  auto is_pchar(char c) -> bool
+    {
+    // unreserved, sub-delims, ":" and "@" (RFC 3986), plus "/" between segments
+    return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or (c >= '0' and c <= '9')
+           or std::string_view{"-._~!$&'()*+,;=:@/"}.contains(c);
+    }
+
+  [[nodiscard]]
+  auto hex_value(char c) -> int
+    {
+    if(c >= '0' and c <= '9')
+      return c - '0';
+    if(c >= 'a' and c <= 'f')
+      return c - 'a' + 10;
+    if(c >= 'A' and c <= 'F')
+      return c - 'A' + 10;
+    return -1;
+    }
+
+  /// invalid escapes are kept as they are
+  [[nodiscard]]
+  auto percent_decode(std::string_view text) -> std::string
+    {
+    std::string out;
+    out.reserve(text.size());
+    for(std::size_t i{}; i != text.size(); ++i)
+      {
+      if(text[i] == '%' and i + 2 < text.size())
+        {
+        auto const high{hex_value(text[i + 1])};
+        auto const low{hex_value(text[i + 2])};
+        if(high >= 0 and low >= 0)
+          {
+          out.push_back(static_cast<char>(high * 16 + low));
+          i += 2;
+          continue;
+          }
+        }
+      out.push_back(text[i]);
+      }
+    return out;
+    }
+
+  [[nodiscard]]
+  auto make_file_uri(std::string_view path) -> std::string
+    {
+    std::string uri{"file://"};
+    uri.reserve(uri.size() + path.size());
+    for(auto c: path)
+      if(is_pchar(c))
+        uri.push_back(c);
+      else
+        std::format_to(std::back_inserter(uri), "%{:02X}", static_cast<unsigned char>(c));
+    return uri;
+    }
+
+  [[nodiscard]]
+  auto path_from_uri(std::string_view uri) -> std::string
+    {
+    constexpr std::string_view scheme{"file:"};
+    if(not uri.starts_with(scheme))
+      return std::string{uri};
+    auto rest{uri.substr(scheme.size())};
+    // file://host/path: the authority (empty or localhost) ends at the next slash
+    if(rest.starts_with("//"))
+      rest = rest.substr(std::min(rest.find('/', 2), rest.size()));
+    return percent_decode(rest);
+    }
+
+  /// text of the exception being handled; call only inside a catch block
+  [[nodiscard]]
+  auto current_exception_message() -> std::string
+    {
+    try
+      {
+      throw;
+      }
+    catch(std::exception const & e)
+      {
+      return e.what();
+      }
+    catch(...)
+      {
+      return "unknown exception";
+      }
+    }
+
+  /// last resort when not even an error response can be built (out of memory); the core has no logger
+  auto report_lost_error(std::string_view where) noexcept -> void
+    {
+    std::fprintf(stderr, "kdevcxx_with_ai: %.*s: error response lost\n", static_cast<int>(where.size()), where.data());
+    }
+
   /// all written types are plain data, writing cannot fail
   [[nodiscard]]
   auto to_json(auto const & value) -> std::string
@@ -291,7 +388,7 @@ namespace
     std::vector<file_diagnostics_t> result;
     result.reserve(by_file.size());
     for(auto & [file, diagnostics]: by_file)
-      result.push_back({.uri = file_uri(file), .diagnostics = std::move(diagnostics)});
+      result.push_back({.uri = make_file_uri(file), .diagnostics = std::move(diagnostics)});
     return to_json(result);
     }
 
@@ -345,18 +442,33 @@ namespace
         return invalid_arguments();
       tools.open_diff(
         *args,
-        [send, id, contents = args->new_file_contents](diff_outcome_e outcome)
+        [send, id, contents = args->new_file_contents](diff_outcome_e outcome) noexcept
         {
-          tool_result_t result;
-          switch(outcome)
+          // called later from the event loop, nothing may escape
+          try
             {
-            case diff_outcome_e::accepted:
-              result = {.content = {{.text = std::string{file_saved}}, {.text = contents}}};
-              break;
-            case diff_outcome_e::rejected:   result = text_result(std::string{diff_rejected}); break;
-            case diff_outcome_e::tab_closed: result = text_result(std::string{tab_closed}); break;
+            tool_result_t result;
+            switch(outcome)
+              {
+              case diff_outcome_e::accepted:
+                result = {.content = {{.text = std::string{file_saved}}, {.text = contents}}};
+                break;
+              case diff_outcome_e::rejected:   result = text_result(std::string{diff_rejected}); break;
+              case diff_outcome_e::tab_closed: result = text_result(std::string{tab_closed}); break;
+              }
+            send(response(id, std::move(result)));
             }
-          send(response(id, std::move(result)));
+          catch(...)
+            {
+            try
+              {
+              send(error_response(id, rpc_error_e::internal_error, current_exception_message()));
+              }
+            catch(...)
+              {
+              report_lost_error("openDiff");
+              }
+            }
         }
       );
       }
@@ -375,116 +487,101 @@ namespace
       auto const args{from_json<diagnostics_args_t>(params.arguments.str)};
       if(not args)
         return invalid_arguments();
-      auto const file{args->uri.empty() ? std::string{} : uri_to_path(args->uri)};
+      auto const file{args->uri.empty() ? std::string{} : path_from_uri(args->uri)};
       reply(text_result(diagnostics_json(tools.diagnostics(file))));
       }
     else
       send(error_response(id, rpc_error_e::invalid_params, std::format("Unknown tool: {}", params.name)));
     }
 
-  [[nodiscard]]
-  auto is_pchar(char c) -> bool
-    {
-    // unreserved, sub-delims, ":" and "@" (RFC 3986), plus "/" between segments
-    return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or (c >= '0' and c <= '9')
-           or std::string_view{"-._~!$&'()*+,;=:@/"}.contains(c);
-    }
-
-  [[nodiscard]]
-  auto hex_value(char c) -> int
-    {
-    if(c >= '0' and c <= '9')
-      return c - '0';
-    if(c >= 'a' and c <= 'f')
-      return c - 'a' + 10;
-    if(c >= 'A' and c <= 'F')
-      return c - 'A' + 10;
-    return -1;
-    }
-
-  /// invalid escapes are kept as they are
-  [[nodiscard]]
-  auto percent_decode(std::string_view text) -> std::string
-    {
-    std::string out;
-    out.reserve(text.size());
-    for(std::size_t i{}; i != text.size(); ++i)
-      {
-      if(text[i] == '%' and i + 2 < text.size())
-        {
-        auto const high{hex_value(text[i + 1])};
-        auto const low{hex_value(text[i + 2])};
-        if(high >= 0 and low >= 0)
-          {
-          out.push_back(static_cast<char>(high * 16 + low));
-          i += 2;
-          continue;
-          }
-        }
-      out.push_back(text[i]);
-      }
-    return out;
-    }
   }  // namespace
 
-auto make_auth_token() -> expected_ec<std::string>
+auto make_error_code(ide_error_e error) noexcept -> std::error_code
+  { return simple_enum::generic_error_category<ide_error_e>::make_error_code(error); }
+
+auto current_exception_error() noexcept -> std::error_code
+  {
+  try
+    {
+    throw;
+    }
+  catch(std::bad_alloc const &)
+    {
+    return make_error_code(ide_error_e::out_of_memory);
+    }
+  catch(std::system_error const & e)
+    {
+    return e.code();
+    }
+  catch(...)
+    {
+    return make_error_code(ide_error_e::internal_error);
+    }
+  }
+
+auto make_auth_token() noexcept -> expected_ec<std::string>
   {
   std::array<unsigned char, 16> bytes{};
   if(::getentropy(bytes.data(), bytes.size()) != 0)
-    return simple_enum::unexpected_ec{std::error_code{errno, std::generic_category()}};
-  std::string token;
-  token.reserve(bytes.size() * 2);
-  for(auto byte: bytes)
-    std::format_to(std::back_inserter(token), "{:02x}", byte);
-  return token;
-  }
-
-auto lock_dir(std::string_view claude_config_dir, std::filesystem::path const & home) -> std::filesystem::path
-  {
-  if(not claude_config_dir.empty())
-    return std::filesystem::path{claude_config_dir} / "ide";
-  return home / ".claude" / "ide";
-  }
-
-auto lock_file_json(std::int64_t pid, std::span<std::string const> workspace_folders, std::string_view auth_token)
-  -> std::string
-  {
-  return to_json(
-    lock_file_t{.pid = pid, .workspace_folders = workspace_folders, .ide_name = ide_name, .auth_token = auth_token}
+    return unexpected_ec{std::error_code{errno, std::generic_category()}};
+  return catch_to_expected(
+    [&bytes]
+    {
+      std::string token;
+      token.reserve(bytes.size() * 2);
+      for(auto byte: bytes)
+        std::format_to(std::back_inserter(token), "{:02x}", byte);
+      return token;
+    }
   );
   }
 
-auto claude_launch_command(std::uint16_t port, std::string_view claude_command) -> std::string
+auto lock_dir(std::string_view claude_config_dir, std::filesystem::path const & home) noexcept
+  -> expected_ec<std::filesystem::path>
+  {
+  return catch_to_expected(
+    [&]
+    {
+      if(not claude_config_dir.empty())
+        return std::filesystem::path{claude_config_dir} / "ide";
+      return home / ".claude" / "ide";
+    }
+  );
+  }
+
+auto lock_file_json(
+  std::int64_t pid, std::span<std::string const> workspace_folders, std::string_view auth_token
+) noexcept -> expected_ec<std::string>
+  {
+  return catch_to_expected(
+    [&]
+    {
+      return to_json(
+        lock_file_t{.pid = pid, .workspace_folders = workspace_folders, .ide_name = ide_name, .auth_token = auth_token}
+      );
+    }
+  );
+  }
+
+auto claude_launch_command(std::uint16_t port, std::string_view claude_command) noexcept -> expected_ec<std::string>
   {
   // env works the same in sh, bash, zsh and fish
-  return std::format("env CLAUDE_CODE_SSE_PORT={} ENABLE_IDE_INTEGRATION=true {}", port, claude_command);
+  return catch_to_expected(
+    [&] { return std::format("env CLAUDE_CODE_SSE_PORT={} ENABLE_IDE_INTEGRATION=true {}", port, claude_command); }
+  );
   }
 
-auto file_uri(std::string_view path) -> std::string
+auto file_uri(std::string_view path) noexcept -> expected_ec<std::string>
   {
-  std::string uri{"file://"};
-  uri.reserve(uri.size() + path.size());
-  for(auto c: path)
-    if(is_pchar(c))
-      uri.push_back(c);
-    else
-      std::format_to(std::back_inserter(uri), "%{:02X}", static_cast<unsigned char>(c));
-  return uri;
+  return catch_to_expected([path] { return make_file_uri(path); });
   }
 
-auto uri_to_path(std::string_view uri) -> std::string
+auto uri_to_path(std::string_view uri) noexcept -> expected_ec<std::string>
   {
-  constexpr std::string_view scheme{"file:"};
-  if(not uri.starts_with(scheme))
-    return std::string{uri};
-  auto rest{uri.substr(scheme.size())};
-  // file://host/path: the authority (empty or localhost) ends at the next slash
-  if(rest.starts_with("//"))
-    rest = rest.substr(std::min(rest.find('/', 2), rest.size()));
-  return percent_decode(rest);
+  return catch_to_expected([uri] { return path_from_uri(uri); });
   }
 
-auto severity_name(severity_e severity) -> std::string_view
+auto severity_name(severity_e severity) noexcept -> std::string_view
   {
   switch(severity)
     {
@@ -496,61 +593,97 @@ auto severity_name(severity_e severity) -> std::string_view
   return "Info";
   }
 
-auto handle_message(std::string_view message, ide_tools_t & tools, send_t const & send) -> std::string
+namespace
   {
-  auto const request{from_json<request_t>(message)};
-  if(not request)
+  auto dispatch(std::string const & id, request_t const & request, ide_tools_t & tools, send_t const & send) -> void
     {
-    send(error_response("null", rpc_error_e::parse_error, "Parse error"));
-    return {};
-    }
-  // responses and notifications (ide_connected, notifications/initialized) need no answer
-  if(not request->id)
-    return request->method;
-  if(request->method.empty())
-    return {};
-
-  auto const & id{request->id->str};
-  auto const & method{request->method};
-  if(method == "initialize")
-    {
-    auto const params{from_json<initialize_params_t>(request->params.str).value_or(initialize_params_t{})};
-    send(response(id, initialize_result_t{.protocol_version = params.protocol_version}));
-    }
-  else if(method == "tools/list")
-    send(response(id, tools_list_t{.tools = tools_info}));
-  else if(method == "ping")
-    send(response(id, empty_t{}));
-  else if(method == "tools/call")
-    {
-    if(auto const params{from_json<call_params_t>(request->params.str)}; params)
-      call_tool(id, *params, tools, send);
+    auto const & method{request.method};
+    if(method == "initialize")
+      {
+      auto const params{from_json<initialize_params_t>(request.params.str).value_or(initialize_params_t{})};
+      send(response(id, initialize_result_t{.protocol_version = params.protocol_version}));
+      }
+    else if(method == "tools/list")
+      send(response(id, tools_list_t{.tools = tools_info}));
+    else if(method == "ping")
+      send(response(id, empty_t{}));
+    else if(method == "tools/call")
+      {
+      if(auto const params{from_json<call_params_t>(request.params.str)}; params)
+        call_tool(id, *params, tools, send);
+      else
+        send(error_response(id, rpc_error_e::invalid_params, "Invalid params"));
+      }
     else
-      send(error_response(id, rpc_error_e::invalid_params, "Invalid params"));
+      send(error_response(id, rpc_error_e::method_not_found, std::format("Method not found: {}", method)));
     }
-  else
-    send(error_response(id, rpc_error_e::method_not_found, std::format("Method not found: {}", method)));
-  return {};
-  }
+  }  // namespace
 
-auto selection_changed(std::string_view path, std::string_view text, position_t start, position_t end) -> std::string
+auto handle_message(std::string_view message, ide_tools_t & tools, send_t const & send) noexcept
+  -> expected_ec<std::string>
   {
-  bool const is_empty{start.line == end.line and start.character == end.character};
-  return notification(
-    "selection_changed",
-    selection_params_t{
-      .text = text,
-      .file_path = path,
-      .file_url = file_uri(path),
-      .selection = {.start = start, .end = end, .is_empty = is_empty}
+  return catch_to_expected(
+    [&] -> std::string
+    {
+      auto const request{from_json<request_t>(message)};
+      if(not request)
+        {
+        send(error_response("null", rpc_error_e::parse_error, "Parse error"));
+        return {};
+        }
+      // responses and notifications (ide_connected, notifications/initialized) need no answer
+      if(not request->id)
+        return request->method;
+      if(request->method.empty())
+        return {};
+
+      auto const & id{request->id->str};
+      try
+        {
+        dispatch(id, *request, tools, send);
+        }
+      catch(...)
+        {
+        // early catch: a failure in the STL, glaze or an ide_tools_t implementation ends as a JSON-RPC error
+        send(error_response(id, rpc_error_e::internal_error, current_exception_message()));
+        }
+      return {};
     }
   );
   }
 
-auto at_mentioned(std::string_view path, std::optional<int> line_start, std::optional<int> line_end) -> std::string
+auto selection_changed(std::string_view path, std::string_view text, position_t start, position_t end) noexcept
+  -> expected_ec<std::string>
   {
-  return notification(
-    "at_mentioned", at_mentioned_params_t{.file_path = path, .line_start = line_start, .line_end = line_end}
+  return catch_to_expected(
+    [&]
+    {
+      bool const is_empty{start.line == end.line and start.character == end.character};
+      return notification(
+        "selection_changed",
+        selection_params_t{
+          .text = text,
+          .file_path = path,
+          .file_url = make_file_uri(path),
+          .selection = {.start = start, .end = end, .is_empty = is_empty}
+        }
+      );
+    }
+  );
+  }
+
+auto at_mentioned(std::string_view path, std::optional<int> line_start, std::optional<int> line_end) noexcept
+  -> expected_ec<std::string>
+  {
+  return catch_to_expected(
+    [&]
+    {
+      return notification(
+        "at_mentioned", at_mentioned_params_t{.file_path = path, .line_start = line_start, .line_end = line_end}
+      );
+    }
   );
   }
   }  // namespace ide_protocol
+
+template class simple_enum::generic_error_category<ide_protocol::ide_error_e>;

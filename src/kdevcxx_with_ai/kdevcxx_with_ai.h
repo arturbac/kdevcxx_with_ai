@@ -58,7 +58,12 @@ public:
   auto diagnostics(std::string_view file) -> ide_protocol::diagnostics_t override;
 
 private:
+  /// slot: writes the lock file, warns the user once when that fails
   auto write_lock_file() -> void;
+  [[nodiscard]]
+  auto try_write_lock_file() -> ide_protocol::expected_ec<void>;
+  /// visible warning in KDevelop plus a log line
+  auto post_warning(QString const & text) -> void;
   auto remove_lock_file() -> void;
   auto track_view(KDevelop::IDocument * document) -> void;
   auto schedule_selection() -> void;
@@ -72,5 +77,6 @@ private:
   QHash<QString, QPointer<diff_dialog_t>> diffs_;
   QTimer selection_timer_;
   std::string last_selection_;
+  bool lock_file_warned_{};
   std::unique_ptr<claude_view_factory_t> view_factory_;
   };

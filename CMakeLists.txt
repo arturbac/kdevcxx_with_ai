@@ -30,6 +30,8 @@ list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 include(KDEInstallDirs6)
 include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
+# KDECompilerSettings disables exceptions, but the STL throws (bad_alloc, format_error, ...) and must be handled
+kde_enable_exceptions()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets WebSockets Test)
 find_package(KF6 REQUIRED COMPONENTS

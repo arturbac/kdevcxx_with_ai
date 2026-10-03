@@ -19,8 +19,11 @@ Fetched with CPM during configure:
 | [arturbac/small_vectors](https://github.com/arturbac/small_vectors) | `master` | dependency of stralgo, built static |
 | [arturbac/ut-ext](https://github.com/arturbac/ut-ext) | v2.0.1_9 | unit tests |
 
-During development the author's libraries track `master`. small_vectors throws exceptions, so the Qt adapter and
-the plugin are built with exceptions enabled (KDE settings disable them by default).
+During development the author's libraries track `master`.
+
+Exceptions are enabled for the whole project (`kde_enable_exceptions()`; KDE settings disable them by default),
+because the standard library throws (`std::bad_alloc`, `std::format_error`, ...). See
+[ide_integration.md](ide_integration.md#errors) for where they are handled.
 
 The oldest distribution with all of these is Debian 13 (KDevelop 24.12, KF6 6.13, Qt 6.8), which CI uses.
 

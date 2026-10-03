@@ -67,7 +67,8 @@ int main(int argc, char ** argv)
   auto const token_bytes{QByteArray::fromStdString(token)};
   no_tools_t tools;
   ide_qt::ide_server_t server{token, tools};
-  auto const port{server.listen()};
+  auto const listened{server.listen()};
+  auto const port{listened.value_or(0)};
 
   "listens_on_free_port"_test = [&] { expect(port != 0); };
 
@@ -97,7 +98,7 @@ int main(int argc, char ** argv)
     QSignalSpy ready{&server, &ide_qt::ide_server_t::client_connected};
     client.sendTextMessage(uR"({"jsonrpc":"2.0","method":"ide_connected","params":{"pid":1}})"_s);
     expect(ready.wait(2000) >> fatal);
-    server.broadcast(ide_protocol::at_mentioned("/p/ż.cc", 1, 2));
+    server.broadcast(ide_protocol::at_mentioned("/p/ż.cc", 1, 2).value());
     auto const message{next_message(client)};
     expect(eq(message[u"method"_s].toString(), u"at_mentioned"_s));
     expect(eq(message[u"params"_s].toObject()[u"filePath"_s].toString(), u"/p/ż.cc"_s));

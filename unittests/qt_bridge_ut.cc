@@ -3,7 +3,10 @@
 
 #include <boost/ut.hpp>
 #include <ostream>
+#include <event_guard.h>
 #include <qt_bridge.h>
+
+#include <stdexcept>
 
 using namespace boost::ut;
 using namespace Qt::StringLiterals;
@@ -38,5 +41,14 @@ int main()
   {
     auto const list{ide_qt::to_std(QStringList{u"/a"_s, u"/ż"_s})};
     expect(list == std::vector<std::string>{"/a", "/ż"});
+  };
+
+  "event_guard_stops_exceptions"_test = []
+  {
+    bool ran{};
+    expect(ide_qt::event_guard("ok", [&] { ran = true; }));
+    expect(ran);
+    expect(not ide_qt::event_guard("std", [] { throw std::runtime_error{"boom"}; }));
+    expect(not ide_qt::event_guard("other", [] { throw 1; }));
   };
   }

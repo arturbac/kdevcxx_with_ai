@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "ide_server.h"
+#include "event_guard.h"
 #include "qt_bridge.h"
 
 #include <QPointer>
@@ -25,18 +26,27 @@ ide_server_t::~ide_server_t()
     client->disconnect(this);
   }
 
-auto ide_server_t::listen() -> quint16
+auto ide_server_t::listen() -> ide_protocol::expected_ec<quint16>
   {
   if(not server_.listen(QHostAddress::LocalHost, 0))
-    return 0;
+    {
+    qWarning("kdevcxx_with_ai: cannot listen on 127.0.0.1: %s", qPrintable(server_.errorString()));
+    return ide_protocol::unexpected_ec{ide_protocol::make_error_code(ide_protocol::ide_error_e::listen_failed)};
+    }
   return server_.serverPort();
   }
 
-auto ide_server_t::broadcast(std::string_view message) -> void
+auto ide_server_t::broadcast(std::string_view message) noexcept -> void
   {
-  auto const text{to_qt(message)};
-  for(auto * client: std::as_const(clients_))
-    client->sendTextMessage(text);
+  std::ignore = event_guard(
+    "broadcast",
+    [&]
+    {
+      auto const text{to_qt(message)};
+      for(auto * client: std::as_const(clients_))
+        client->sendTextMessage(text);
+    }
+  );
   }
 
 auto ide_server_t::on_new_connection() -> void
@@ -59,19 +69,33 @@ auto ide_server_t::on_new_connection() -> void
       this,
       [this, client](QString const & message)
       {
-        // tools may reply after the client is gone (openDiff waits for the user)
-        QPointer<QWebSocket> guard{client};
-        auto const notification{ide_protocol::handle_message(
-          to_std(message),
-          tools_,
-          [guard](std::string reply)
+        std::ignore = event_guard(
+          "message",
+          [&]
           {
-            if(guard)
-              guard->sendTextMessage(to_qt(reply));
+            // tools may reply after the client is gone (openDiff waits for the user)
+            QPointer<QWebSocket> guard{client};
+            auto const notification{ide_protocol::handle_message(
+              to_std(message),
+              tools_,
+              [guard](std::string reply)
+              {
+                std::ignore = event_guard(
+                  "reply",
+                  [&]
+                  {
+                    if(guard)
+                      guard->sendTextMessage(to_qt(reply));
+                  }
+                );
+              }
+            )};
+            if(not notification)
+              qWarning("kdevcxx_with_ai: message not handled: %s", notification.error().message().c_str());
+            else if(*notification == "ide_connected")
+              Q_EMIT client_connected();
           }
-        )};
-        if(notification == "ide_connected")
-          Q_EMIT client_connected();
+        );
       }
     );
     connect(

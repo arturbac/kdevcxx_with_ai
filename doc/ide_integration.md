@@ -84,3 +84,29 @@ Hint → `Info`, no severity → `Hint`. Without `uri`, all open local documents
   sent 100 ms after the selection or cursor stops changing, only when it differs from the last one.
 - `at_mentioned` — `filePath`, plus 0-based `lineStart`/`lineEnd` when there is a selection, sent by the
   *Send to Claude Code* action. A selection ending at column 0 does not include its last line.
+
+## Errors
+
+Exceptions are enabled for the whole project. The project's own code does not throw. Errors travel as
+`expected_ec` (`std::error_code`, project codes in `ide_protocol::ide_error_e`):
+
+- Core functions are `noexcept`. An exception from code outside the project (standard library, glaze) is
+  caught in the function that called it (`catch_to_expected`) and returned as an error code. `std::bad_alloc` maps
+  to `out_of_memory`, `std::system_error` keeps its code, and anything else maps to `internal_error`.
+- `handle_message` answers a failure while handling a request, also one thrown by an `ide_tools_t`
+  implementation, with JSON-RPC error `-32603` and the exception text. The claude CLI gets an answer either way.
+- Qt and KDE report errors through return values, `error()`/`errorString()`, out parameters and error signals.
+  The plugin checks them right after each call, converts them to error codes and logs the Qt text there.
+- Code called from the Qt event loop (slots, timers, socket callbacks) runs inside `ide_qt::event_guard`, which
+  logs and stops anything that escaped, so no exception passes through Qt.
+
+Where the error path ends:
+
+| Error | Result |
+|---|---|
+| a selection update cannot be built | logged, skipped; the next update replaces it |
+| no auth token, or no free port on 127.0.0.1 | IDE integration disabled with a warning in KDevelop; the Claude Code tool view still starts `claude` |
+| the lock file cannot be written | warning in KDevelop (once until a write succeeds again); retried when a project opens or closes |
+| a failure in a tool call | JSON-RPC error to the claude CLI |
+
+The plugin never ends the KDevelop process.
