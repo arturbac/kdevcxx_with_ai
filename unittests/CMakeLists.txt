@@ -10,13 +10,11 @@ else()
     CPMAddPackage(
         ut
         GITHUB_REPOSITORY arturbac/ut-ext
-        GIT_TAG           v2.0.1_2
+        GIT_TAG           v2.0.1_9
         EXCLUDE_FROM_ALL  YES
     )
 endif()
 
-add_engine_ut(parse_json_response_ut.cc)
-add_engine_ut(clang_format_ut.cc)
-add_engine_ut(clean_string_ut.cc)
-add_engine_ut(network_ut.cc)
-add_engine_ut(is_valid_openai_bearer_key_ut.cc)
+add_engine_ut(ide_protocol_ut.cc)
+add_engine_ut(ide_server_ut.cc)
+target_link_libraries(ide_server_ut PRIVATE Qt6::Test)

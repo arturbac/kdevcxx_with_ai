@@ -1,19 +1,14 @@
 {
     "KPlugin": {
-        "Description": "Enhance Kdevelop with AI-powered features, providing advanced editing capabilities.",
+        "Description": "KDevelop client for Claude Code: Konsole tool view and the Claude Code IDE integration (diffs, diagnostics, selection)",
         "Id": "kdevcxx_with_ai",
-        "Name": "kdevcxx_with_ai",
-        "ServiceTypes": [ "KCModule" ],
-        "X-KDE-PluginInfo-Author": "Artur Bać",
-        "X-KDE-PluginInfo-Email": "arturbac.ab@gmail.com",
-        "X-KDE-PluginInfo-License": "MIT",
-        "X-KDE-PluginInfo-Version": "0.1.4",
-        "X-KDE-PluginInfo-Name": "KDevCxxWithAi",
-        "X-KDE-PluginInfo-Category": "Development",
-        "X-KDE-PluginInfo-Website": "https://github.com/arturbac/kdevcxx_with_ai",
-        "X-KDE-PluginInfo-EnabledByDefault": "true",
-        "X-KDE-ServiceTypes": ["KDevelop/SettingsDialog/Plugin"],
-        "X-KDE-ParentComponents": ["kdevcxx_with_ai"]
+        "Name": "Claude Code",
+        "Authors": [ { "Name": "Artur Bać", "Email": "arturbac.ab@gmail.com" } ],
+        "License": "MIT",
+        "Version": "1.0.0",
+        "Website": "https://github.com/arturbac/kdevcxx_with_ai",
+        "Icon": "utilities-terminal",
+        "EnabledByDefault": true
     },
     "X-KDevelop-Category": "Global",
     "X-KDevelop-Mode": "GUI"

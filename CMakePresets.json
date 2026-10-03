@@ -45,8 +45,7 @@
       "binaryDir": "${sourceDir}/build/release-time-trace",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "-ftime-trace -fno-omit-frame-pointer",
-        "SIMPLE_ENUM_ENABLE_TIME_TRACE": "ON"
+        "CMAKE_CXX_FLAGS": "-ftime-trace -fno-omit-frame-pointer"
       }
     },
     {
